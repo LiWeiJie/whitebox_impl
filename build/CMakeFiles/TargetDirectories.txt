@@ -1,0 +1,3 @@
+/Users/Li/Code/git/AYSSL_WHITE/build/CMakeFiles/rebuild_cache.dir
+/Users/Li/Code/git/AYSSL_WHITE/build/CMakeFiles/edit_cache.dir
+/Users/Li/Code/git/AYSSL_WHITE/build/CMakeFiles/AYSSL_WHITE_MAIN.dir

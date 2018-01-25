@@ -1,0 +1,116 @@
+/*************************************
+@berif  : this file is writed to test the speed of LBlock80,
+		  which is implemented in 4-bit S-box way.
+@author : Shusheng Liu
+@time   : 11.4 2011
+@Copyright (c) 2010, south china normal university
+**************************************/
+
+#include <stdio.h>
+#include <time.h>
+#include <LBlock/LBlock80.h>
+#include <LBlock/LBlock80wb.h>
+const int Experiment_Times = 1;
+
+int lblock_stadndard_test()
+{
+	uint8 plaintext[16];
+	uint8 key[20];
+	uint8 ciphertext[16];
+	clock_t begin,end; 
+	
+	//test the implementation is right or not.
+	int i;
+	uint8 j=0;
+	for(i=15; i>=0; i--) 
+	{
+		plaintext[i]=0;
+		j++;
+	}
+	j=0;
+	for(i=19; i>3; i--) 
+	{
+		key[i]=0;
+		j++;
+	}
+	//key[3]=15; key[2]=14; key[1]=13; key[0]=12;
+	key[3]=0; key[2]=0; key[1]=0; key[0]=0;
+	begin = clock();
+	for(i=0; i<Experiment_Times; i++)
+	{
+		LBlock80_encrypte_algorithm(plaintext,32,key,ciphertext);
+	}
+	end = clock();
+	double ts = end-begin;
+	ts = ts * 1000 / CLOCKS_PER_SEC;
+	printf("Encryption %d using %lf ms\n",Experiment_Times, ts);
+	for(i=15; i>=0; i--)
+	{
+		printf("%x ",ciphertext[i]);		
+	}
+	printf("\n");
+
+	return 0;
+}
+
+int lblock_wb_test()
+{
+	uint8 plaintext[16];
+	uint8 key[20];
+	uint8 ciphertext[16];
+	clock_t program_start,program_end; 
+	
+	//test the implementation is right or not.
+	int i;
+	uint8 j=0;
+	for(i=15; i>=0; i--) 
+	{
+		plaintext[i]=0;
+		j++;
+	}
+	j=0;
+	for(i=19; i>3; i--) 
+	{
+		key[i]=0;
+		j++;
+	}
+	//key[3]=15; key[2]=14; key[1]=13; key[0]=12;
+	key[3]=0; key[2]=0; key[1]=0; key[0]=0;
+	LBlock80wb_ctx ctx;
+
+	program_start = clock();
+	gen_LBlock80_wb_ctx(&ctx, key);
+
+	program_end = clock();
+
+	double ts = program_end - program_start;
+	ts = ts*1000/CLOCKS_PER_SEC;
+
+	printf("The generating of encryptions table spend %lf ms\n", ts);
+	program_start = clock();
+
+	for(i=0; i<Experiment_Times; i++)
+	{
+		LBlock80wb_encrypte_algorithm(plaintext, &ctx, ciphertext);
+	}
+	program_end = clock();
+
+	ts = program_end - program_start;
+	ts = ts*1000/CLOCKS_PER_SEC;
+
+	printf("Encryption %d using %lf ms\n",Experiment_Times, ts);
+	for(i=15; i>=0; i--)
+	{
+		printf("%x ",ciphertext[i]);		
+	}
+	printf("\n");
+
+	return 0;
+}
+
+int lblock_test_main() {
+	printf("LBlock80 standard test:\n");
+	lblock_stadndard_test();
+	printf("\LBlock80 wb test:\n");
+	lblock_wb_test();
+}
