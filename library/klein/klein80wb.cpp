@@ -188,6 +188,17 @@ typedef struct klein_wb_assistant_t {
 
 #include <affine/NTLUtils.h>
 
+u32 inverse_u32(u32 a) {
+    u32 b; 
+    u8 *p = (u8*)&b;
+    int i;
+    for ( i = 0; i<8; i++) {
+        *p = (u8)(a >> (24-8*i));
+        p++;                
+    }
+    return b;
+}
+
 int gen_klein80wb_ctx_table(const uint8_t *key, klein80_wb_t * klein80wb_ctx, int rounds) {
     int i,j,k;
 
@@ -226,17 +237,17 @@ int gen_klein80wb_ctx_table(const uint8_t *key, klein80_wb_t * klein80wb_ctx, in
             }
             // printf("\n");
         }
+        
         for (k=0; k<256; k++) {
-            klein80wb_ctx->Te[i-1][0][k] = Te0[T[i-1][2][k]];
-            klein80wb_ctx->Te[i-1][1][k] = Te1[T[i-1][3][k]];
-            klein80wb_ctx->Te[i-1][2][k] = Te2[T[i-1][4][k]];
-            klein80wb_ctx->Te[i-1][3][k] = Te3[T[i-1][5][k]];
+            klein80wb_ctx->Te[i-1][0][k] = inverse_u32( Te0[T[i-1][2][k]]);
+            klein80wb_ctx->Te[i-1][1][k] = inverse_u32( Te1[T[i-1][3][k]]);
+            klein80wb_ctx->Te[i-1][2][k] = inverse_u32( Te2[T[i-1][4][k]]);
+            klein80wb_ctx->Te[i-1][3][k] = inverse_u32( Te3[T[i-1][5][k]]);
 
-            klein80wb_ctx->Te[i-1][4][k] = Te0[T[i-1][6][k]];
-            klein80wb_ctx->Te[i-1][5][k] = Te1[T[i-1][7][k]];
-            klein80wb_ctx->Te[i-1][6][k] = Te2[T[i-1][0][k]];
-            klein80wb_ctx->Te[i-1][7][k] = Te3[T[i-1][1][k]];
-
+            klein80wb_ctx->Te[i-1][4][k] = inverse_u32( Te0[T[i-1][6][k]]);
+            klein80wb_ctx->Te[i-1][5][k] = inverse_u32( Te1[T[i-1][7][k]]);
+            klein80wb_ctx->Te[i-1][6][k] = inverse_u32( Te2[T[i-1][0][k]]);
+            klein80wb_ctx->Te[i-1][7][k] = inverse_u32( Te3[T[i-1][1][k]]);
         }
 
         temp_state[0] = round_key[0];
@@ -331,8 +342,10 @@ int apply_affine_matrix(klein80_wb_t* ctx, klein_wb_assistant_t *assistant) {
         for (j=0; j<8; j++) {
             for (k=0; k<256; k++) {
                 int pos = (j+2)%8;
-                // pos = (pos/4)*4 + (3-(pos%4));
                 Te_T[k] = applyAffineToU32( assistant->PC[i+1][j/4][1],  ctx->Te[i][j][ applyAffineToU8(assistant->P[i][pos][0], k)  ]);
+                if (j%4 ==0) {
+                    Te_T[k] = addVecToU32(assistant->PC[i+1][j/4][1].vectorTranslation , Te_T[k]);
+                }
             }
             for (k=0; k<256; k++) {
                 ctx->Te[i][j][k] = Te_T[k];
@@ -509,14 +522,14 @@ void klein80wb_encrypt(const uint8_t *plain, const klein80_wb_t * klein80wb_ctx,
     
     //input encoding
 
-    state[3] = klein80wb_ctx->SE[0][0][plain[0]];
-    state[2] = klein80wb_ctx->SE[0][1][plain[1]];
-    state[1] = klein80wb_ctx->SE[0][2][plain[2]];
-    state[0] = klein80wb_ctx->SE[0][3][plain[3]];
-    state[7] = klein80wb_ctx->SE[0][4][plain[4]];
-    state[6] = klein80wb_ctx->SE[0][5][plain[5]];
-    state[5] = klein80wb_ctx->SE[0][6][plain[6]];
-    state[4] = klein80wb_ctx->SE[0][7][plain[7]];  
+    state[0] = klein80wb_ctx->SE[0][0][plain[0]];
+    state[1] = klein80wb_ctx->SE[0][1][plain[1]];
+    state[2] = klein80wb_ctx->SE[0][2][plain[2]];
+    state[3] = klein80wb_ctx->SE[0][3][plain[3]];
+    state[4] = klein80wb_ctx->SE[0][4][plain[4]];
+    state[5] = klein80wb_ctx->SE[0][5][plain[5]];
+    state[6] = klein80wb_ctx->SE[0][6][plain[6]];
+    state[7] = klein80wb_ctx->SE[0][7][plain[7]];  
     
     // state[0] = klein80wb_ctx->SE[0][0][plain[0]];
     // state[1] = klein80wb_ctx->SE[0][1][plain[1]];
@@ -554,16 +567,16 @@ void klein80wb_encrypt(const uint8_t *plain, const klein80_wb_t * klein80wb_ctx,
         #ifdef AFFINE_IMPL_DEBUG
             printf("round %d:\n", i);
             uint32_t ttt;
-            ttt =   (state[3]<<24) | \
-                    (state[2]<<16) | \
-                    (state[1]<< 8) | \
-                    (state[0]    );
+            ttt =   (state[0]<<24) | \
+                    (state[1]<<16) | \
+                    (state[2]<< 8) | \
+                    (state[3]    );
             ttt = applyAffineToU32( klein80wb_ctx->xorInv[i][0], ttt);
             printf("%08X", ttt);
-            ttt =   (state[7]<<24) | \
-                    (state[6]<<16) | \
-                    (state[5]<< 8) | \
-                    (state[4]    );
+            ttt =   (state[4]<<24) | \
+                    (state[5]<<16) | \
+                    (state[6]<< 8) | \
+                    (state[7]    );
             ttt = applyAffineToU32( (klein80wb_ctx->xorInv[i][1]), ttt);
             printf("%08X", ttt);
             printf("\n");
@@ -573,37 +586,28 @@ void klein80wb_encrypt(const uint8_t *plain, const klein80_wb_t * klein80wb_ctx,
             gg01 = applyAffineToU32( (klein80wb_ctx->xorInv[i+1][0]), klein80wb_ctx->Te[i][1][state[3]]);
             gg02 = applyAffineToU32( (klein80wb_ctx->xorInv[i+1][0]), klein80wb_ctx->Te[i][2][state[4]]);
             gg03 = applyAffineToU32( (klein80wb_ctx->xorInv[i+1][0]), klein80wb_ctx->Te[i][3][state[5]]);
-            printf("t0:\t%08X ^ %08X ^ %08X ^ %08X\n", gg00, gg01, gg02, gg03);
+            printf("t0:\t%08X ^ %08X ^ %08X ^ %08X = %08X\n", gg00, gg01, gg02, gg03, gg00 ^ gg01 ^ gg02 ^ gg03);
             gg00 = applyAffineToU32( (klein80wb_ctx->xorInv[i+1][1]), klein80wb_ctx->Te[i][4][state[6]]);
             gg01 = applyAffineToU32( (klein80wb_ctx->xorInv[i+1][1]), klein80wb_ctx->Te[i][5][state[7]]);
             gg02 = applyAffineToU32( (klein80wb_ctx->xorInv[i+1][1]), klein80wb_ctx->Te[i][6][state[0]]);
             gg03 = applyAffineToU32( (klein80wb_ctx->xorInv[i+1][1]), klein80wb_ctx->Te[i][7][state[1]]);
-            printf("t1:\t%08X ^ %08X ^ %08X ^ %08X\n", gg00, gg01, gg02, gg03);
+            printf("t1:\t%08X ^ %08X ^ %08X ^ %08X = %08X\n", gg00, gg01, gg02, gg03, gg00 ^ gg01 ^ gg02 ^ gg03);
             
         #endif 
 
-        printf("round %d:\n", i);
-        uint32_t ttt;
-        // ttt =   (state[3]<<24) | \
-        //         (state[2]<<16) | \
-        //         (state[1]<< 8) | \
-        //         (state[0]    );
+        // printf("round %d:\n", i);
+        // uint32_t ttt;
+        // ttt =   (state[0]<<24) | \
+        //         (state[1]<<16) | \
+        //         (state[2]<< 8) | \
+        //         (state[3]    );
         // printf("%08X", ttt);
-        // ttt =   (state[7]<<24) | \
-        //         (state[6]<<16) | \
-        //         (state[5]<< 8) | \
-        //         (state[4]    );
-        ttt =   (state[0]<<24) | \
-                (state[1]<<16) | \
-                (state[2]<< 8) | \
-                (state[3]    );
-        printf("%08X", ttt);
-        ttt =   (state[4]<<24) | \
-                (state[5]<<16) | \
-                (state[6]<< 8) | \
-                (state[7]    );
-        printf("%08X", ttt);
-        printf("\n");
+        // ttt =   (state[4]<<24) | \
+        //         (state[5]<<16) | \
+        //         (state[6]<< 8) | \
+        //         (state[7]    );
+        // printf("%08X", ttt);
+        // printf("\n");
 
         // u32 gg00, gg01, gg02, gg03;
         // gg00 = klein80wb_ctx->Te[i][0][state[2]];
@@ -621,33 +625,14 @@ void klein80wb_encrypt(const uint8_t *plain, const klein80_wb_t * klein80wb_ctx,
         t0 = klein80wb_ctx->Te[i][0][state[2]] ^ klein80wb_ctx->Te[i][1][state[3]] ^ klein80wb_ctx->Te[i][2][state[4]] ^ klein80wb_ctx->Te[i][3][state[5]];
         t1 = klein80wb_ctx->Te[i][4][state[6]] ^ klein80wb_ctx->Te[i][5][state[7]] ^ klein80wb_ctx->Te[i][6][state[0]] ^ klein80wb_ctx->Te[i][7][state[1]];
         
-        state[3] = t0>>24;
-        state[2] = t0>>16;
-        state[1] = t0>>8 ;
-        state[0] = t0    ;
-        state[7] = t1>>24;
-        state[6] = t1>>16;
-        state[5] = t1>>8 ;
-        state[4] = t1    ;
-
-        // #ifdef AFFINE_IMPL_DEBUG
-        //     printf("round %d:\n", i);
-        //     uint32_t ttt;
-        //     ttt =   (state[0]<<24) ^ \
-        //             (state[1]<<16) ^ \
-        //             (state[2]<< 8) ^ \
-        //             (state[3]    );
-        //     ttt = applyAffineToU32( klein80wb_ctx->xorInv[i][0], ttt);
-        //     printf("%08X", ttt);
-        //     ttt =   (state[4]<<24) ^ \
-        //             (state[5]<<16) ^ \
-        //             (state[6]<< 8) ^ \
-        //             (state[7]    );
-        //     ttt = applyAffineToU32( (klein80wb_ctx->xorInv[i][1]), ttt);
-            
-
-
-        // #endif 
+        state[0] = t0>>24;
+        state[1] = t0>>16;
+        state[2] = t0>>8 ;
+        state[3] = t0    ;
+        state[4] = t1>>24;
+        state[5] = t1>>16;
+        state[6] = t1>>8 ;
+        state[7] = t1    ;
         
 
         // printf("round %d:\n", i);

@@ -203,6 +203,20 @@ uint8_t applyMatToU8(NTL::mat_GF2 &mat, uint8_t data) {
 	return (uint8_t)getDigitalFromVec(b);
 }
 
+uint32_t addVecToU32(NTL::vec_GF2 &vec, uint32_t data) {
+	NTL::vec_GF2 a,b;
+	initVecFromBit(a, data, 32);
+	b = vec+a;
+	return (uint32_t)getDigitalFromVec(b);
+}
+
+uint8_t addVecToU8(NTL::vec_GF2 &vec, uint8_t data) {
+	NTL::vec_GF2 a,b;
+	initVecFromBit(a, data, 8);
+	b = vec+a;
+	return (uint8_t)getDigitalFromVec(b);
+}
+
 
 int genIndMatrix(mat_GF2 &mat, int size) {
 	mat.SetDims(size, size);

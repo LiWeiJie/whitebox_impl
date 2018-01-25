@@ -76,7 +76,8 @@ uint8_t applyMatToU8(NTL::mat_GF2 &mat, uint8_t data);
 int genIndMatrix(NTL::mat_GF2 &mat, int size);
 int genZeroVec(NTL::vec_GF2 &vec, int size);
 
-
+uint32_t addVecToU32(NTL::vec_GF2 &vec, uint32_t data);
+uint8_t addVecToU8(NTL::vec_GF2 &vec, uint8_t data);
 
 
 #endif   /* MATRIXUTILS_H */

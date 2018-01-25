@@ -18,8 +18,8 @@
 //rounds of Klein-80;
 #define ROUNDS_80 16
 
-// #define AFFINE_IMPL 
-// #define AFFINE_IMPL_DEBUG  
+#define AFFINE_IMPL 
+#define AFFINE_IMPL_DEBUG  
 
 // #define MAT_BIJECTIONS
 
