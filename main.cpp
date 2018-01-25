@@ -37,11 +37,11 @@ int main(int argc, char **argv)
 
     printf("succesful count:\t%d/4\n", ct);
     
-    printf("-------------klein test-------------\n");
-    klein_test_main();
+    // printf("-------------klein test-------------\n");
+    // klein_test_main();
 
-    // printf("-------------LBlock test-------------\n");
-    // lblock_test_main();
+    printf("-------------LBlock test-------------\n");
+    lblock_test_main();
 
     return 0;
 }
