@@ -509,15 +509,6 @@ void klein80wb_encrypt(const uint8_t *plain, const klein80_wb_t * klein80wb_ctx,
     state[6] = plain[6];
     state[7] = plain[7];
 
-    // state[3] = plain[0];
-    // state[2] = plain[1];
-    // state[1] = plain[2];
-    // state[0] = plain[3];
-    // state[7] = plain[4];
-    // state[6] = plain[5];
-    // state[5] = plain[6];
-    // state[4] = plain[7];
-
     #else
     
     //input encoding
@@ -530,15 +521,6 @@ void klein80wb_encrypt(const uint8_t *plain, const klein80_wb_t * klein80wb_ctx,
     state[5] = klein80wb_ctx->SE[0][5][plain[5]];
     state[6] = klein80wb_ctx->SE[0][6][plain[6]];
     state[7] = klein80wb_ctx->SE[0][7][plain[7]];  
-    
-    // state[0] = klein80wb_ctx->SE[0][0][plain[0]];
-    // state[1] = klein80wb_ctx->SE[0][1][plain[1]];
-    // state[2] = klein80wb_ctx->SE[0][2][plain[2]];
-    // state[3] = klein80wb_ctx->SE[0][3][plain[3]];
-    // state[4] = klein80wb_ctx->SE[0][4][plain[4]];
-    // state[5] = klein80wb_ctx->SE[0][5][plain[5]];
-    // state[6] = klein80wb_ctx->SE[0][6][plain[6]];
-    // state[7] = klein80wb_ctx->SE[0][7][plain[7]]; 
 
     #endif
 
@@ -633,12 +615,6 @@ void klein80wb_encrypt(const uint8_t *plain, const klein80_wb_t * klein80wb_ctx,
         state[5] = t1>>16;
         state[6] = t1>>8 ;
         state[7] = t1    ;
-        
-
-        // printf("round %d:\n", i);
-        // for (int j=0; j<8; j++) 
-        //     printf("%02X", state[j]);
-        // printf("\n");
         
     }
 

@@ -37,10 +37,10 @@ void klein80_encrypt_rounds(const uint8_t *plain, const uint8_t *key, const uint
 
 		for(i = 1; i <= rounds; i++)
 		{
-            printf("round %d:\n", i);
-            for (int j=0; j<8; j++) 
-                printf("%02X", state[j]);
-            printf("\n");
+            // printf("round %d:\n", i);
+            // for (int j=0; j<8; j++) 
+            //     printf("%02X", state[j]);
+            // printf("\n");
 
 			//add round key;
 			state[0] = state[0] ^ round_key[0];
