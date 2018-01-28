@@ -68,6 +68,12 @@ int lblock_wb_test()
 		plaintext[i]=0;
 		j++;
 	}
+	// j = 1;
+	// for(i=15; i>=8; i--) 
+	// {
+	// 	plaintext[i]=j;
+	// 	j++;
+	// }
 	j=0;
 	for(i=19; i>3; i--) 
 	{

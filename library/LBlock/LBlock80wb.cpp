@@ -1,5 +1,9 @@
-
-
+/*
+ * @Author: Weijie Li 
+ * @Date: 2018-01-25 16:12:15 
+ * @Last Modified by: Weijie Li
+ * @Last Modified time: 2018-01-26 17:40:57
+ */
 
 #include <LBlock/LBlock80wb.h>
 
@@ -27,7 +31,10 @@ int embedded_sbox_key(LBlock80wb_ctx *ctx, const uint8_t *key) {
 	int rounds = LBLOCK80_ROUNDS;
 	ctx->rounds = rounds;
 	for (i=1; i<=rounds; i++) {
-
+		// test OK
+		// printf("Round %i key : ", i);
+		// for(j=19; j>=12; j--)printf("%x ",K[j]);
+		// printf("\n");
 		for (d=0; d<16; d++) {
 			ctx->Te[i-1][0][d] = sbox0[ d^K[12] ];
 			ctx->Te[i-1][1][d] = sbox1[ d^K[13] ];
@@ -37,6 +44,15 @@ int embedded_sbox_key(LBlock80wb_ctx *ctx, const uint8_t *key) {
 			ctx->Te[i-1][5][d] = sbox5[ d^K[17] ];
 			ctx->Te[i-1][6][d] = sbox6[ d^K[18] ];
 			ctx->Te[i-1][7][d] = sbox7[ d^K[19] ];
+
+			// ctx->Te[i-1][0][d] = d;
+			// ctx->Te[i-1][1][d] = d;
+			// ctx->Te[i-1][2][d] = d;
+			// ctx->Te[i-1][3][d] = d;
+			// ctx->Te[i-1][4][d] = d;
+			// ctx->Te[i-1][5][d] = d;
+			// ctx->Te[i-1][6][d] = d;
+			// ctx->Te[i-1][7][d] = d;
 		}
 
 		if (i!=rounds) {
@@ -78,6 +94,8 @@ int gen_bijections_table(LBlock80wb_ctx *ctx, LBlock80wb_assistant *assistant) {
 				initVecFromBit(tv, j, 4);
 				tv = X*tv;
 				int t = getDigitalFromVec(tv);
+				// assistant->f[i][k][j] = j;
+				// assistant->fi[i][k][j] = j;
 				assistant->f[i][k][j] = t;
 				assistant->fi[i][k][t] = j;
 			}
@@ -86,10 +104,22 @@ int gen_bijections_table(LBlock80wb_ctx *ctx, LBlock80wb_assistant *assistant) {
 	for (k=0; k<8; k++) {
 		for (j=0; j<16; j++) {
 			ctx->fi[0][k][j] = assistant->fi[0][k][j];
-			ctx->fi[1][k][j] = assistant->fi[0][k][j];
-			ctx->g[k][j] = assistant->f[rounds+2][k][j];
+			ctx->fi[1][k][j] = assistant->fi[1][k][j];
+			ctx->g[1][k][j] = assistant->f[rounds+1][k][j];
+			ctx->g[0][k][j] = assistant->f[rounds][k][j];
 		}
 	}	
+
+	#if LBLOCK_WB_DEBUG
+		for (i=0; i<rounds+2; i++) {
+			for (k=0; k<8; k++) {
+				for (j=0; j<16; j++) {
+					ctx->restore[i][k][j] = assistant->f[i][k][j];
+				}
+			}
+		}
+	#endif //LBLOCK_WB_DEBUG
+
 	return 0;
 }
 
@@ -100,22 +130,22 @@ int apply_bijections_table(LBlock80wb_ctx *ctx, LBlock80wb_assistant *assistant)
 		uint8_t Te_T[8][16];
 		for (d=0; d<16; d++) { 
 			int  ime = 
-			Te_T[0][d] = 	assistant->fi[i+1][2][ \
-									ctx->Te[i][0][assistant->f[i][0][d]]] ;
-			Te_T[1][d] = 	assistant->fi[i+1][0][ \
-									ctx->Te[i][1][assistant->f[i][1][d]]] ;
-			Te_T[2][d] = 	assistant->fi[i+1][3][ \
-									ctx->Te[i][2][assistant->f[i][2][d]]] ;
-			Te_T[3][d] = 	assistant->fi[i+1][1][ \
-									ctx->Te[i][3][assistant->f[i][3][d]]] ;
-			Te_T[4][d] = 	assistant->fi[i+1][6][ \
-									ctx->Te[i][4][assistant->f[i][4][d]]] ;
-			Te_T[5][d] = 	assistant->fi[i+1][4][ \
-									ctx->Te[i][5][assistant->f[i][5][d]]] ;
-			Te_T[6][d] = 	assistant->fi[i+1][7][ \
-									ctx->Te[i][6][assistant->f[i][6][d]]] ;
-			Te_T[7][d] = 	assistant->fi[i+1][5][ \
-									ctx->Te[i][7][assistant->f[i][7][d]]] ;
+			Te_T[0][d] = 	assistant->fi[i+2][2][ \
+									ctx->Te[i][0][assistant->f[i+1][0][d]]] ;
+			Te_T[1][d] = 	assistant->fi[i+2][0][ \
+									ctx->Te[i][1][assistant->f[i+1][1][d]]] ;
+			Te_T[2][d] = 	assistant->fi[i+2][3][ \
+									ctx->Te[i][2][assistant->f[i+1][2][d]]] ;
+			Te_T[3][d] = 	assistant->fi[i+2][1][ \
+									ctx->Te[i][3][assistant->f[i+1][3][d]]] ;
+			Te_T[4][d] = 	assistant->fi[i+2][6][ \
+									ctx->Te[i][4][assistant->f[i+1][4][d]]] ;
+			Te_T[5][d] = 	assistant->fi[i+2][4][ \
+									ctx->Te[i][5][assistant->f[i+1][5][d]]] ;
+			Te_T[6][d] = 	assistant->fi[i+2][7][ \
+									ctx->Te[i][6][assistant->f[i+1][6][d]]] ;
+			Te_T[7][d] = 	assistant->fi[i+2][5][ \
+									ctx->Te[i][7][assistant->f[i+1][7][d]]] ;
 								
 		}
 		for (d=0; d<16; d++) {
@@ -128,22 +158,22 @@ int apply_bijections_table(LBlock80wb_ctx *ctx, LBlock80wb_assistant *assistant)
 			ctx->Te[i][6][d] = Te_T[6][d];
 			ctx->Te[i][7][d] = Te_T[7][d];
 
-			ctx->remap[i][0][d] = 	assistant->fi[i+1][0][ \
-									assistant->f [i  ][6][d]];
-			ctx->remap[i][1][d] = 	assistant->fi[i+1][1][ \
-									assistant->f [i  ][7][d]];
-			ctx->remap[i][2][d] = 	assistant->fi[i+1][2][ \
-									assistant->f [i  ][0][d]];
-			ctx->remap[i][3][d] = 	assistant->fi[i+1][3][ \
-									assistant->f [i  ][1][d]];
-			ctx->remap[i][4][d] = 	assistant->fi[i+1][4][ \
-									assistant->f [i  ][2][d]];
-			ctx->remap[i][5][d] = 	assistant->fi[i+1][5][ \
-									assistant->f [i  ][3][d]];
-			ctx->remap[i][6][d] = 	assistant->fi[i+1][6][ \
-									assistant->f [i  ][4][d]];
-			ctx->remap[i][7][d] = 	assistant->fi[i+1][7][ \
-									assistant->f [i  ][5][d]];
+			ctx->remap[i][0][d] = 	assistant->fi[i+2][0][ \
+									assistant->f [i   ][6][d]];
+			ctx->remap[i][1][d] = 	assistant->fi[i+2][1][ \
+									assistant->f [i   ][7][d]];
+			ctx->remap[i][2][d] = 	assistant->fi[i+2][2][ \
+									assistant->f [i   ][0][d]];
+			ctx->remap[i][3][d] = 	assistant->fi[i+2][3][ \
+									assistant->f [i   ][1][d]];
+			ctx->remap[i][4][d] = 	assistant->fi[i+2][4][ \
+									assistant->f [i   ][2][d]];
+			ctx->remap[i][5][d] = 	assistant->fi[i+2][5][ \
+									assistant->f [i   ][3][d]];
+			ctx->remap[i][6][d] = 	assistant->fi[i+2][6][ \
+									assistant->f [i   ][4][d]];
+			ctx->remap[i][7][d] = 	assistant->fi[i+2][7][ \
+									assistant->f [i   ][5][d]];
 		}
 
 	}
@@ -157,14 +187,21 @@ int gen_LBlock80_wb_ctx(LBlock80wb_ctx *ctx, const uint8_t *key) {
 	LBlock80wb_assistant assistant;
 	gen_bijections_table(ctx, &assistant);
 	apply_bijections_table(ctx, &assistant);
+
+	// int temptrya =3;
+	// int temptryb =8;
+	// printf("%X ^ %X : %X ^ %X\n%X : %X : %X\n", temptrya, temptryb, assistant.f[1][2][temptrya], assistant.f[1][2][temptryb], \
+	// 		temptrya ^ temptryb, assistant.f[1][2][temptrya] ^assistant.f[1][2][temptryb], assistant.fi[1][2][assistant.f[1][2][temptrya] ^assistant.f[1][2][temptryb]]);
 	// gen
 	
 	return 0;
 }
 
+// 64 bits plain
 void LBlock80wb_encrypte_algorithm(const uint8_t *plain, const LBlock80wb_ctx *ctx, uint8_t* cipher)   {
 	//uint8_t round_key[8];
 	uint8_t K[20];
+	//using 4 bits each uint8
 	uint8_t state[16];
 	uint8_t temp[8];
 	uint8_t *stateR = state;
@@ -183,11 +220,21 @@ void LBlock80wb_encrypte_algorithm(const uint8_t *plain, const LBlock80wb_ctx *c
 	stateL[4] = plain[12]; stateL[5] = plain[13];
 	stateL[6] = plain[14]; stateL[7] = plain[15];
 
-	for (i=0; i<8; i++)  {
-		stateL[i] = ctx->fi[1][i][plain[i]];
-		stateR[i] = ctx->fi[0][i][plain[i+8]];
-	}
 
+	for (i=0; i<8; i++)  {
+		stateL[i] = ctx->fi[1][i][stateL[i]];
+		stateR[i] = ctx->fi[0][i][stateR[i]];
+	}
+       
+#if LBLOCK_WB_DEBUG
+	printf("Round 0:\t");
+	for(j=7; j>=0; j--) printf("%x ", ctx->restore[1][j][stateL[j]]);
+	for(j=7; j>=0; j--) printf("%x ", ctx->restore[0][j][stateR[j]]);
+	printf("\n");
+	// printf("Round 0:\t");
+	// for(j=15; j>=0; j--) printf("%x ",state[j]);
+	// printf("\n");
+#endif //LBLOCK_WB_DEBUG
 	
 
 	for(i=0; i < ctx->rounds; i++)
@@ -198,7 +245,31 @@ void LBlock80wb_encrypte_algorithm(const uint8_t *plain, const LBlock80wb_ctx *c
 		
 		//one round of LBlock
 		temp[0] = stateR[0]; temp[1]=stateR[1];
-		
+
+		#if LBLOCK_WB_DEBUG
+			printf("Round %d:\t\n", i);
+			printf("Left:\t");
+			printf("%X%X%X%X%X%X%X%X\n",  \
+			 														ctx->restore[i+2][7][ctx->Te[i][6][stateL[6]]], \
+																	ctx->restore[i+2][6][ctx->Te[i][4][stateL[4]]], \
+																	ctx->restore[i+2][5][ctx->Te[i][7][stateL[7]]], \
+																	ctx->restore[i+2][4][ctx->Te[i][5][stateL[5]]], \
+																	ctx->restore[i+2][3][ctx->Te[i][2][stateL[2]]], \
+																	ctx->restore[i+2][2][ctx->Te[i][0][stateL[0]]], \
+																	ctx->restore[i+2][1][ctx->Te[i][3][stateL[3]]], \
+																	ctx->restore[i+2][0][ctx->Te[i][1][stateL[1]]] );
+			printf("Right:\t");
+			printf("%X%X%X%X%X%X%X%X\n",  \
+																	ctx->restore[i+2][7][ctx->remap[i][7][stateR[5]]], \
+																	ctx->restore[i+2][6][ctx->remap[i][6][stateR[4]]], \
+																	ctx->restore[i+2][5][ctx->remap[i][5][stateR[3]]], \
+																	ctx->restore[i+2][4][ctx->remap[i][4][stateR[2]]], \
+																	ctx->restore[i+2][3][ctx->remap[i][3][temp[1]  ]],  \
+																	ctx->restore[i+2][2][ctx->remap[i][2][temp[0]  ]], \
+																	ctx->restore[i+2][1][ctx->remap[i][1][stateR[7]]], \
+																	ctx->restore[i+2][0][ctx->remap[i][0][stateR[6]]] );
+		#endif //LBLOCK_WB_DEBUG
+
 		stateR[0] = ctx->remap[i][0][stateR[6]] ^ ctx->Te[i][1][stateL[1]];
 		stateR[1] = ctx->remap[i][1][stateR[7]] ^ ctx->Te[i][3][stateL[3]];
 		stateR[6] = ctx->remap[i][6][stateR[4]] ^ ctx->Te[i][4][stateL[4]];
@@ -211,6 +282,14 @@ void LBlock80wb_encrypte_algorithm(const uint8_t *plain, const LBlock80wb_ctx *c
 		tempPiont = stateR;
 		stateR = stateL;
 		stateL = tempPiont;
+
+		        
+#if LBLOCK_WB_DEBUG
+		for(j=7; j>=0; j--) printf("%x ", ctx->restore[i+2][j][stateL[j]]);
+        for(j=7; j>=0; j--) printf("%x ", ctx->restore[i+1][j][stateR[j]]);
+        printf("\n");
+#endif //LBLOCK_WB_DEBUG
+
 
 		// printf("Round %d:\t", i);
 		// for(j=15; j>=0; j--) printf("%x ",state[j]);
@@ -236,6 +315,11 @@ void LBlock80wb_encrypte_algorithm(const uint8_t *plain, const LBlock80wb_ctx *c
 	tempPiont = stateR;
 	stateR = stateL;
 	stateL = tempPiont;
+
+	for (i=0; i<8; i++) {
+		stateR[i] = ctx->g[1][i][stateR[i]];
+		stateL[i] = ctx->g[0][i][stateL[i]];
+	}
 
 	//ouput cipher text
 	cipher[0] = stateR[0]; cipher[1] = stateR[1]; 

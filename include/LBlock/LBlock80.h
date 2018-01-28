@@ -44,9 +44,13 @@ void LBlock80_encrypte_algorithm(uint8 *plain, const uint8 rounds, uint8 *key, u
 	K[12]=key[12]; K[13]=key[13]; K[14]=key[14]; K[15]=key[15];
 	K[16]=key[16]; K[17]=key[17]; K[18]=key[18]; K[19]=key[19];    
 
+	// printf("Round 0:\t");
+	// for(j=15; j>=0; j--) printf("%x ",state[j]);
+	// printf("\n");
+
 	for(i=1; i < rounds; i++)
 	{
-		// printf("key : ");
+		// printf("Round %i key : ", i);
 		// for(j=19; j>=12; j--)printf("%x ",K[j]);
 		// printf("\n");
 		
@@ -61,6 +65,10 @@ void LBlock80_encrypte_algorithm(uint8 *plain, const uint8 rounds, uint8 *key, u
 		stateR[5] = stateR[3] ^ sbox7[K[19] ^ stateL[7]];
 		stateR[2] = temp[0]   ^ sbox0[K[12] ^ stateL[0]];
 		stateR[3] = temp[1]   ^ sbox2[K[14] ^ stateL[2]];
+
+		// printf("Round %d:\t", i);
+		// for(j=7; j>=0; j--) printf("%x ",stateR[j]);
+		// printf("\n");
 
 		tempPiont = stateR;
 		stateR = stateL;
@@ -88,9 +96,7 @@ void LBlock80_encrypte_algorithm(uint8 *plain, const uint8 rounds, uint8 *key, u
 		K[11] = (K[11] ^ (i<<2)) & 0x0F;
 		K[12] =  K[12] ^  (i>>2);
 
-		// printf("Round %d:\t", i);
-		// for(j=15; j>=0; j--) printf("%x ",state[j]);
-		// printf("\n");
+		
 	}
 
 	//last round of LBlock

@@ -1,3 +1,9 @@
+/*
+ * @Author: Weijie Li 
+ * @Date: 2018-01-25 16:12:11 
+ * @Last Modified by: Weijie Li
+ * @Last Modified time: 2018-01-26 11:01:42
+ */
 /*************************************
 @berif  : this file is the implemention of Lblock in the way of 4-bit S-box. 
 		  It is writed to test the speed of LBlock80.
@@ -14,12 +20,19 @@
 
 #define LBLOCK80_ROUNDS 32
 
+#define LBLOCK_WB_DEBUG 0
+
 typedef struct LBlock80wb_ctx {
 	int rounds ;
 	uint8_t Te[LBLOCK80_ROUNDS][8][16];
 	uint8_t remap[LBLOCK80_ROUNDS][8][16];
 	uint8_t fi[2][8][16];
-	uint8_t g [8][16];
+	uint8_t g[2][8][16];
+	
+	#if LBLOCK_WB_DEBUG
+		uint8_t restore[LBLOCK80_ROUNDS+2][8][16];
+	#endif //LBLOCK_WB_DEBUG
+	
 } LBlock80wb_ctx;
 
 int gen_LBlock80_wb_ctx(LBlock80wb_ctx *ctx, const uint8_t *key);

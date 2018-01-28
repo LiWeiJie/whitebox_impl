@@ -5,7 +5,7 @@
                 "name": "(lldb) Launch",
                 "type": "cppdbg",
                 "request": "launch",
-                "program": "${workspaceRoot}/build/WHITE_PAPER_MAIN",
+                "program": "${workspaceRoot}/build/console/WHITE_PAPER_MAIN",
                 "args": [],
                 "stopAtEntry": false,
                 "cwd": "${workspaceRoot}",
