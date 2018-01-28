@@ -4,13 +4,7 @@
  * @Last Modified by: Weijie Li
  * @Last Modified time: 2018-01-26 11:01:42
  */
-/*************************************
-@berif  : this file is the implemention of Lblock in the way of 4-bit S-box. 
-		  It is writed to test the speed of LBlock80.
-@author : Shusheng Liu
-@time   : 11.4 2011
-@Copyright (c) 2011, south china normal university
-**************************************/
+
 
 #ifndef _LBLOCK80WB_H_
 #define _LBLOCK80WB_H_

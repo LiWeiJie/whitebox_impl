@@ -44,15 +44,6 @@ int embedded_sbox_key(LBlock80wb_ctx *ctx, const uint8_t *key) {
 			ctx->Te[i-1][5][d] = sbox5[ d^K[17] ];
 			ctx->Te[i-1][6][d] = sbox6[ d^K[18] ];
 			ctx->Te[i-1][7][d] = sbox7[ d^K[19] ];
-
-			// ctx->Te[i-1][0][d] = d;
-			// ctx->Te[i-1][1][d] = d;
-			// ctx->Te[i-1][2][d] = d;
-			// ctx->Te[i-1][3][d] = d;
-			// ctx->Te[i-1][4][d] = d;
-			// ctx->Te[i-1][5][d] = d;
-			// ctx->Te[i-1][6][d] = d;
-			// ctx->Te[i-1][7][d] = d;
 		}
 
 		if (i!=rounds) {
@@ -94,8 +85,6 @@ int gen_bijections_table(LBlock80wb_ctx *ctx, LBlock80wb_assistant *assistant) {
 				initVecFromBit(tv, j, 4);
 				tv = X*tv;
 				int t = getDigitalFromVec(tv);
-				// assistant->f[i][k][j] = j;
-				// assistant->fi[i][k][j] = j;
 				assistant->f[i][k][j] = t;
 				assistant->fi[i][k][t] = j;
 			}
@@ -188,11 +177,11 @@ int gen_LBlock80_wb_ctx(LBlock80wb_ctx *ctx, const uint8_t *key) {
 	gen_bijections_table(ctx, &assistant);
 	apply_bijections_table(ctx, &assistant);
 
+	// correctnesss check out
 	// int temptrya =3;
 	// int temptryb =8;
 	// printf("%X ^ %X : %X ^ %X\n%X : %X : %X\n", temptrya, temptryb, assistant.f[1][2][temptrya], assistant.f[1][2][temptryb], \
 	// 		temptrya ^ temptryb, assistant.f[1][2][temptrya] ^assistant.f[1][2][temptryb], assistant.fi[1][2][assistant.f[1][2][temptrya] ^assistant.f[1][2][temptryb]]);
-	// gen
 	
 	return 0;
 }
@@ -231,18 +220,11 @@ void LBlock80wb_encrypte_algorithm(const uint8_t *plain, const LBlock80wb_ctx *c
 	for(j=7; j>=0; j--) printf("%x ", ctx->restore[1][j][stateL[j]]);
 	for(j=7; j>=0; j--) printf("%x ", ctx->restore[0][j][stateR[j]]);
 	printf("\n");
-	// printf("Round 0:\t");
-	// for(j=15; j>=0; j--) printf("%x ",state[j]);
-	// printf("\n");
 #endif //LBLOCK_WB_DEBUG
 	
 
 	for(i=0; i < ctx->rounds; i++)
 	{
-		// printf("key : ");
-		// for(j=19; j>=12; j--)printf("%x ",K[j]);
-		// printf("\n");
-		
 		//one round of LBlock
 		temp[0] = stateR[0]; temp[1]=stateR[1];
 
@@ -289,28 +271,6 @@ void LBlock80wb_encrypte_algorithm(const uint8_t *plain, const LBlock80wb_ctx *c
         for(j=7; j>=0; j--) printf("%x ", ctx->restore[i+1][j][stateR[j]]);
         printf("\n");
 #endif //LBLOCK_WB_DEBUG
-
-
-		// printf("Round %d:\t", i);
-		// for(j=15; j>=0; j--) printf("%x ",state[j]);
-		// printf("\n");
-
-		
-
-		// for(j=15; j>=0; j--) printf("%x ",state[j]);
-		// printf("\n");
-	}
-
-	// temp[0] = stateR[0]; temp[1]=stateR[1];
-		
-	// stateR[0] = stateR[6] ^ ctx->Te[i-1][1][stateL[1]];
-	// stateR[1] = stateR[7] ^ ctx->Te[i-1][3][stateL[3]];
-	// stateR[6] = stateR[4] ^ ctx->Te[i-1][4][stateL[4]];
-	// stateR[7] = stateR[5] ^ ctx->Te[i-1][6][stateL[6]];
-	// stateR[4] = stateR[2] ^ ctx->Te[i-1][5][stateL[5]];
-	// stateR[5] = stateR[3] ^ ctx->Te[i-1][7][stateL[7]];
-	// stateR[2] = temp[0]   ^ ctx->Te[i-1][0][stateL[0]];
-	// stateR[3] = temp[1]   ^ ctx->Te[i-1][2][stateL[2]];
 
 	tempPiont = stateR;
 	stateR = stateL;
