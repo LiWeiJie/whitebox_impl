@@ -117,6 +117,7 @@ int lblock_wb_test()
 int lblock_test_main() {
 	printf("LBlock80 standard test:\n");
 	lblock_stadndard_test();
-	printf("\LBlock80 wb test:\n");
+	printf("LBlock80 wb test:\n");
 	lblock_wb_test();
+	return 0;
 }

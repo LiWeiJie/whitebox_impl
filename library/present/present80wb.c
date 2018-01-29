@@ -124,17 +124,31 @@ void present_wb_helper_init(int rounds, wb_helper wbh) {
 	}
 }
 
-void present_wb_init_roundkeys(const uint8_t *key, wb_helper wbh, present_wb_ctx ctx) {
+uint8_t present_sbox8(uint8_t x) {
+	uint8_t y = 0;
+	y = sbox[x>>4 & 0x0F ] | (sbox[x & 0x0F] << 4);
+	return y;
+}
+
+/**
+ * @brief combine addRoundKey and sbox, then confuse it 
+ * 
+ * @param key 
+ * @param wbh 
+ * @param ctx 
+ */
+void present_wb_init_rkAsbox(const uint8_t *key, wb_helper wbh, present_wb_ctx ctx) {
 	const uint8_t rounds = ctx.rounds;
 	uint8_t round_counter = 1;
 	int i,j;
 	
 	uint8_t state[3];
 	uint8_t round_key[10];
+	// combine addRoundKey and sbox
 
 	for (i=0; i<8; i++) {
 		for (j=0; j<256; j++) {
-			ctx.rk[0][i][j] = wbh.key_p[0][0][i][j ^ key[i]];
+			ctx.rk[0][i][j] = wbh.key_p[0][0][i][ present_sbox8( j ^ key[i])];
 		}
 	}
 
@@ -159,7 +173,7 @@ void present_wb_init_roundkeys(const uint8_t *key, wb_helper wbh, present_wb_ctx
 		for (i=0; i<8; i++) {
 			for (j=0; j<256; j++) {
 				//TODO: 消除p轮的置换
-				ctx.rk[round_counter-1][i][j] = wbh.key_p[0][round_counter-1][i][j ^ round_key[i]];
+				ctx.rk[round_counter-1][i][j] = wbh.key_p[0][round_counter-1][i][ present_sbox8( j ^ round_key[i])];
 			}
 		}
 		round_key[5] ^= round_counter << 2; // do this first, which may be faster
@@ -198,7 +212,7 @@ void present_wb_init(const uint8_t *key, present_wb_ctx ctx) {
 	ctx.rounds = PRESENT_ROUNDS;
 	wb_helper wbh;
 	present_wb_helper_init(ctx.rounds, wbh);
-	present_wb_init_roundkeys(key,wbh, ctx);
+	present_wb_init_rkAsbox(key,wbh, ctx);
 	
 	//substitution and permutation
 	int i,j,k,l;

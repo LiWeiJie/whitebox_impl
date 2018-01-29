@@ -27,7 +27,7 @@ int embedded_sbox_key(LBlock80wb_ctx *ctx, const uint8_t *key) {
 	K[12]=key[12]; K[13]=key[13]; K[14]=key[14]; K[15]=key[15];
 	K[16]=key[16]; K[17]=key[17]; K[18]=key[18]; K[19]=key[19]; 
 
-	int i,j,d;
+	int i,d;
 	int rounds = LBLOCK80_ROUNDS;
 	ctx->rounds = rounds;
 	for (i=1; i<=rounds; i++) {
@@ -113,12 +113,11 @@ int gen_bijections_table(LBlock80wb_ctx *ctx, LBlock80wb_assistant *assistant) {
 }
 
 int apply_bijections_table(LBlock80wb_ctx *ctx, LBlock80wb_assistant *assistant) {
-	int i,j,d;
+	int i,d;
 	int rounds = ctx->rounds;
 	for (i=0; i<rounds; i++) {
 		uint8_t Te_T[8][16];
 		for (d=0; d<16; d++) { 
-			int  ime = 
 			Te_T[0][d] = 	assistant->fi[i+2][2][ \
 									ctx->Te[i][0][assistant->f[i+1][0][d]]] ;
 			Te_T[1][d] = 	assistant->fi[i+2][0][ \
@@ -188,8 +187,6 @@ int gen_LBlock80_wb_ctx(LBlock80wb_ctx *ctx, const uint8_t *key) {
 
 // 64 bits plain
 void LBlock80wb_encrypte_algorithm(const uint8_t *plain, const LBlock80wb_ctx *ctx, uint8_t* cipher)   {
-	//uint8_t round_key[8];
-	uint8_t K[20];
 	//using 4 bits each uint8
 	uint8_t state[16];
 	uint8_t temp[8];
@@ -197,7 +194,6 @@ void LBlock80wb_encrypte_algorithm(const uint8_t *plain, const LBlock80wb_ctx *c
 	uint8_t *stateL = state + 8;
 	uint8_t *tempPiont;
 	uint8_t i;
-	int j;
 
 	stateR[0] = plain[0]; stateR[1] = plain[1];
 	stateR[2] = plain[2]; stateR[3] = plain[3];
@@ -272,6 +268,7 @@ void LBlock80wb_encrypte_algorithm(const uint8_t *plain, const LBlock80wb_ctx *c
         printf("\n");
 #endif //LBLOCK_WB_DEBUG
 
+	}
 	tempPiont = stateR;
 	stateR = stateL;
 	stateL = tempPiont;

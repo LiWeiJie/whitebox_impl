@@ -26,7 +26,6 @@ void LBlock80_encrypte_algorithm(uint8 *plain, const uint8 rounds, uint8 *key, u
 	uint8 *stateL = state + 8;
 	uint8 *tempPiont;
 	uint8 i;
-	int j;
 
 	stateR[0] = plain[0]; stateR[1] = plain[1];
 	stateR[2] = plain[2]; stateR[3] = plain[3];
