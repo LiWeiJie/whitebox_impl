@@ -2,7 +2,7 @@
  * @Author: Weijie Li 
  * @Date: 2018-01-24 00:26:02 
  * @Last Modified by: Weijie Li
- * @Last Modified time: 2018-01-29 22:29:55
+ * @Last Modified time: 2018-01-29 22:54:37
  */
 
 #include <present/present80wb.h>
@@ -26,16 +26,12 @@ typedef struct _wb_helper {
 
 void present_wb_helper_init(int rounds, wb_helper &wbh) {
 	int i,k;
-	// uint8_t p[256];
-
-	// for (i=0; i<256; i++) {
-	// 	p[i] = i;
-	// }
+	
 	for (i=0; i<rounds; i++) {
 		for (k=0; k<8; k++) {
-			genIndMatrix( wbh.f[i][k], 8);
-			genIndMatrix( wbh.f_inv[i][k], 8);
-			// genRandomInvMatrix( wbh.f[i][k], wbh.f_inv[i][k], 8);
+			// genIndMatrix( wbh.f[i][k], 8);
+			// genIndMatrix( wbh.f_inv[i][k], 8);
+			genRandomInvMatrix( wbh.f[i][k], wbh.f_inv[i][k], 8);
 		}	
 		matrix_transform_t S, T;
 		combineDiagMat(T, wbh.f_inv[i][0], wbh.f_inv[i][1]);
@@ -49,10 +45,9 @@ void present_wb_helper_init(int rounds, wb_helper &wbh) {
 	}
 	for (i=0; i<=rounds; i++) {
 		for (k=0; k<8; k++) {
-			genIndMatrix( wbh.g[i][k], 8);
-			genIndMatrix( wbh.g_inv[i][k], 8);
-			// genRandomInvMatrix( wbh.g[i][k], wbh.g_inv[i][k], 8);
-			// printf("< %d, %d>\n", wbh.g_inv[i][k].NumCols(), wbh.g_inv[i][k].NumRows());			
+			// genIndMatrix( wbh.g[i][k], 8);
+			// genIndMatrix( wbh.g_inv[i][k], 8);
+			genRandomInvMatrix( wbh.g[i][k], wbh.g_inv[i][k], 8);
 		}	
 	}
 }
@@ -84,11 +79,10 @@ void present_wb_init_rkAsbox(const uint8_t *key, const wb_helper &wbh, present_w
 	for (i=0; i<8; i++) {
 		for (j=0; j<256; j++) {
 			uint8_t n_int;
-			// printf("< %d, %d>\n", wbh.g_inv[0][i].NumCols(), wbh.g_inv[0][i].NumRows());
 			n_int = applyMatToU8(wbh.g_inv[0][i], j);
 			n_int = present_sbox8( n_int ^ key[i]);
 			
-			ctx.rk[0][i][j] = applyMatToU8(wbh.f[0][j],  n_int);
+			ctx.rk[0][i][j] = applyMatToU8(wbh.f[0][i],  n_int);
 			n_int = applyMatToU8(wbh.g[0][i], j);
 			ctx.stmp[i][j] = n_int;
 		}
@@ -114,11 +108,10 @@ void present_wb_init_rkAsbox(const uint8_t *key, const wb_helper &wbh, present_w
 	for (round_counter = 2; round_counter <= rounds; round_counter++) {
 		for (i=0; i<8; i++) {
 			for (j=0; j<256; j++) {
-				//TODO: 消除p轮的置换
 				uint8_t n_int;
 				n_int = applyMatToU8(wbh.g_inv[round_counter-1][i], j);
 				n_int = present_sbox8( n_int ^ round_key[i]);
-				ctx.rk[round_counter-1][i][j] = applyMatToU8(wbh.f[round_counter-1][j],  n_int);
+				ctx.rk[round_counter-1][i][j] = applyMatToU8(wbh.f[round_counter-1][i],  n_int);
 			}
 		}
 		round_key[5] ^= round_counter << 2; // do this first, which may be faster
@@ -144,7 +137,6 @@ void present_wb_init_rkAsbox(const uint8_t *key, const wb_helper &wbh, present_w
 
 	for (i=0; i<8; i++) {
 		for (j=0; j<256; j++) {
-			//TODO: 消除p轮的置换
 			uint8_t n_int;
 			n_int = applyMatToU8(wbh.g_inv[rounds][i], j);
 			n_int = ( n_int ^ round_key[i]);
@@ -273,9 +265,9 @@ void present_wb_enc(const uint8_t *plain, const present_wb_ctx &ctx, uint8_t *ci
 
 #if PRESENT_WB_DEBUG
 		printf("Round %d:\n", round_counter+1);
-
+		printf("State : ");
 		for ( i=0; i<8; i++) {
-			printf("%02X", cipher[i]);
+			printf("%02X", applyMatToU8( ctx.g_inv[round_counter][i], cipher[i]));
 		}
 		printf("\n");
 #endif //PRESENT_WB_DEBUG
@@ -285,9 +277,9 @@ void present_wb_enc(const uint8_t *plain, const present_wb_ctx &ctx, uint8_t *ci
 		}
 
 #if PRESENT_WB_DEBUG
-		printf("\tafter add rk and sbox:\n" );
+		printf("AddRk and sbox : ");
 		for ( i=0; i<8; i++) {
-			printf("%02X", state[i]);
+			printf("%02X", applyMatToU8( ctx.f_inv[round_counter][i], state[i]));
 		}
 		printf("\n");
 #endif //PRESENT_WB_DEBUG
@@ -305,6 +297,14 @@ void present_wb_enc(const uint8_t *plain, const present_wb_ctx &ctx, uint8_t *ci
 			cipher[ i+ 0] = ( uint8_t) applyMatToU32( ctx.pLayer[round_counter][ i+ 0], x0);
 			cipher[ i+ 1] = ( uint8_t) applyMatToU32( ctx.pLayer[round_counter][ i+ 1], x1);
 		}
+
+#if PRESENT_WB_DEBUG
+		printf("Cipher : ");
+		for ( i=0; i<8; i++) {
+			printf("%02X", applyMatToU8( ctx.g_inv[round_counter+1][i], cipher[i]));
+		}
+		printf("\n");
+#endif //PRESENT_WB_DEBUG
 		
 	}
 

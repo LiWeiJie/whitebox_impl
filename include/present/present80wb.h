@@ -2,7 +2,7 @@
  * @Author: Weijie Li 
  * @Date: 2018-01-23 23:35:52 
  * @Last Modified by: Weijie Li
- * @Last Modified time: 2018-01-29 22:29:20
+ * @Last Modified time: 2018-01-29 22:52:37
  */
 
 
@@ -19,8 +19,6 @@
  * ***************/
 
 #define PRESENT_WB_DEBUG 0
-
-
 
 // comment this out if this is used on PC
 #define __UINT_T__
