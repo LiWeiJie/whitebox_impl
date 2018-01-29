@@ -73,6 +73,7 @@ uint32_t applyAffineToU32(const affine_transform_t &aff, uint32_t data);
 uint8_t applyAffineToU8(const affine_transform_t &aff, uint8_t data);
 
 uint8_t applyMatToU8(NTL::mat_GF2 &mat, uint8_t data);
+uint32_t applyMatToU32(const matrix_transform_t &mat, uint32_t data);
 
 
 

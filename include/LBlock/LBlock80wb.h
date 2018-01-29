@@ -12,8 +12,13 @@
 #include "LblocSbox.h"
 #include <cstdint>
 
-#define LBLOCK80_ROUNDS 32
+/*********
+ * 
+ * LBlock config 
+ * 
+ * ***************/
 
+#define LBLOCK80_ROUNDS 32
 #define LBLOCK_WB_DEBUG 0
 
 typedef struct LBlock80wb_ctx {
