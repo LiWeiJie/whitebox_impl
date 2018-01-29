@@ -48,14 +48,16 @@
 #ifndef __PRESENT80WB_H__
 #define __PRESENT80WB_H__
 
+#include <NTL/mat_GF2.h>
+#include <affine/MatrixUtils.h>
+
 #ifdef __cplusplus 
 extern "C" { 
 #endif
 
-#include <NTL/mat_GF2.h>
 
 // comment this out if this is used on PC
-//#define __UINT_T__
+#define __UINT_T__
 
 #ifndef __UINT_T__
 #define __UINT_T__
