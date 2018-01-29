@@ -206,7 +206,7 @@ void present_wb_init_player(wb_helper wbh, present_wb_ctx ctx) {
 	initMatrixFromBit(p2, pLayer2_hex);
 	initMatrixFromBit(p3, pLayer3_hex);
 
-	
+
 										
 }
 
@@ -261,9 +261,9 @@ void present_wb_enc(const uint8_t *plain, const present_wb_ctx ctx, uint8_t *cip
 				state[5] << 16 |
 				state[6] << 8  |
 				state[7]       ;
-		for ( i=0; i<4; i++) {
-			cipher[ 2* i+ 0] = ( uint8_t) applyMatToU32( ctx.pLayer[round_counter][i], x0);
-			cipher[ 2* i+ 1] = ( uint8_t) applyMatToU32( ctx.pLayer[round_counter][i], x1);
+		for ( i=0; i<8; i+=2) {
+			cipher[ i+ 0] = ( uint8_t) applyMatToU32( ctx.pLayer[round_counter][ i+ 0], x0);
+			cipher[ i+ 1] = ( uint8_t) applyMatToU32( ctx.pLayer[round_counter][ i+ 1], x1);
 		}
 		
 	}

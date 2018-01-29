@@ -40,7 +40,7 @@ typedef unsigned long long uint64_t;
 
 typedef struct _present_wb_ctx {
     uint8_t rk[PRESENT_ROUNDS+1][8][256];
-    matrix_transform_t pLayer[PRESENT_ROUNDS][4];
+    matrix_transform_t pLayer[PRESENT_ROUNDS][8];
     uint8_t stmp[8][256]; // start map
 
 #if PRESENT_WB_DEBUG
