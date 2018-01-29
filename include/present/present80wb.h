@@ -2,7 +2,7 @@
  * @Author: Weijie Li 
  * @Date: 2018-01-23 23:35:52 
  * @Last Modified by: Weijie Li
- * @Last Modified time: 2018-01-29 18:15:29
+ * @Last Modified time: 2018-01-29 22:29:20
  */
 
 
@@ -33,7 +33,7 @@ typedef unsigned long uint32_t;
 typedef unsigned long long uint64_t;
 #endif /* __UINT_T__ */
 
-#define PRESENT_ROUNDS 32
+#define PRESENT_ROUNDS 31
 
 typedef struct _present_wb_ctx {
     uint8_t rk[PRESENT_ROUNDS+1][8][256];

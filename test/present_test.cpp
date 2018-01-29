@@ -2,7 +2,7 @@
  * @Author: Weijie Li 
  * @Date: 2018-01-29 17:29:57 
  * @Last Modified by: Weijie Li
- * @Last Modified time: 2018-01-29 17:52:53
+ * @Last Modified time: 2018-01-29 21:34:17
  */
 
 #include <stdio.h>
@@ -10,7 +10,7 @@
 #include <present/present80.h>
 #include <present/present80wb.h>
 
-#define EXPERIMENT_TIMES 100
+#define EXPERIMENT_TIMES 1
 
 
 int present80_stand()
