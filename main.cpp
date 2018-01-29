@@ -23,6 +23,7 @@ int NTLTest();
 int klein_test_main();
 
 int lblock_test_main();
+int present80_test_main();
 
 
 int main(int argc, char **argv) 
@@ -42,6 +43,9 @@ int main(int argc, char **argv)
 
     printf("-------------LBlock test-------------\n");
     lblock_test_main();
+
+    printf("-------------present80 test-------------\n");
+    present80_test_main();
 
     return 0;
 }
