@@ -2,7 +2,7 @@
  * @Author: Weijie Li 
  * @Date: 2017-11-14 16:47:24 
  * @Last Modified by: Weijie Li
- * @Last Modified time: 2017-11-24 10:17:31
+ * @Last Modified time: 2018-01-29 18:15:04
  */
 
 #ifndef MATRIXUTILS_H
@@ -72,7 +72,7 @@ int combineDiagMat(NTL::mat_GF2 &d, NTL::mat_GF2 &s1, NTL::mat_GF2 &s2);
 uint32_t applyAffineToU32(const affine_transform_t &aff, uint32_t data);
 uint8_t applyAffineToU8(const affine_transform_t &aff, uint8_t data);
 
-uint8_t applyMatToU8(NTL::mat_GF2 &mat, uint8_t data);
+uint8_t applyMatToU8(const NTL::mat_GF2 &mat, uint8_t data);
 uint32_t applyMatToU32(const matrix_transform_t &mat, uint32_t data);
 
 

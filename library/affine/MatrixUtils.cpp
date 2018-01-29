@@ -2,7 +2,7 @@
  * @Author: Weijie Li 
  * @Date: 2017-11-15 10:40:21 
  * @Last Modified by: Weijie Li
- * @Last Modified time: 2017-11-19 11:46:13
+ * @Last Modified time: 2018-01-29 18:14:26
  */
 
 #include <affine/MatrixUtils.h>
@@ -206,7 +206,7 @@ uint8_t applyAffineToU8(const affine_transform_t &aff, uint8_t data) {
 	return (uint8_t)getDigitalFromVec(b);
 }
 
-uint8_t applyMatToU8(NTL::mat_GF2 &mat, uint8_t data) {
+uint8_t applyMatToU8(const NTL::mat_GF2 &mat, uint8_t data) {
 	NTL::vec_GF2 a,b;
 	initVecFromBit(a, data, 8);
 	b = mat*a;

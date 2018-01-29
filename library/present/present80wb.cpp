@@ -2,7 +2,7 @@
  * @Author: Weijie Li 
  * @Date: 2018-01-24 00:26:02 
  * @Last Modified by: Weijie Li
- * @Last Modified time: 2018-01-24 10:58:29
+ * @Last Modified time: 2018-01-29 18:03:04
  */
 
 #include <present/present80wb.h>
@@ -24,7 +24,7 @@ typedef struct _wb_helper {
 	matrix_transform_t g_inv[PRESENT_ROUNDS+1][8];
 } wb_helper;
 
-void present_wb_helper_init(int rounds, wb_helper wbh) {
+void present_wb_helper_init(int rounds, wb_helper &wbh) {
 	int i,k;
 	// uint8_t p[256];
 
@@ -56,6 +56,7 @@ void present_wb_helper_init(int rounds, wb_helper wbh) {
 	for (i=0; i<=rounds; i++) {
 		for (k=0; k<8; k++) {
 			genRandomInvMatrix( wbh.g[i][k], wbh.g_inv[i][k], 8);
+			// printf("< %d, %d>\n", wbh.g_inv[i][k].NumCols(), wbh.g_inv[i][k].NumRows());			
 #if PRESENT_WB_DEBUG
 			for (k=0; k<8; k++) {
 				ctx.g_inv[i][k] = wbh.g_inv[i][k];
@@ -78,7 +79,7 @@ uint8_t present_sbox8(uint8_t x) {
  * @param wbh 
  * @param ctx 
  */
-void present_wb_init_rkAsbox(const uint8_t *key, wb_helper wbh, present_wb_ctx ctx) {
+void present_wb_init_rkAsbox(const uint8_t *key, const wb_helper &wbh, present_wb_ctx &ctx) {
 	const uint8_t rounds = ctx.rounds;
 	uint8_t round_counter = 1;
 	int i,j;
@@ -92,6 +93,7 @@ void present_wb_init_rkAsbox(const uint8_t *key, wb_helper wbh, present_wb_ctx c
 	for (i=0; i<8; i++) {
 		for (j=0; j<256; j++) {
 			uint8_t n_int;
+			// printf("< %d, %d>\n", wbh.g_inv[0][i].NumCols(), wbh.g_inv[0][i].NumRows());
 			n_int = applyMatToU8(wbh.g_inv[0][i], j);
 			n_int = present_sbox8( n_int ^ key[i]);
 			
@@ -153,15 +155,15 @@ void present_wb_init_rkAsbox(const uint8_t *key, wb_helper wbh, present_wb_ctx c
 		for (j=0; j<256; j++) {
 			//TODO: 消除p轮的置换
 			uint8_t n_int;
-			n_int = applyMatToU8(wbh.g_inv[round_counter][i], j);
+			n_int = applyMatToU8(wbh.g_inv[rounds][i], j);
 			n_int = present_sbox8( n_int ^ round_key[i]);
-			ctx.rk[round_counter][i][j] = n_int;
+			ctx.rk[rounds][i][j] = n_int;
 		}
 	}
 
 }
 
-void present_wb_init_player(wb_helper wbh, present_wb_ctx ctx) {
+void present_wb_init_player(const wb_helper &wbh, present_wb_ctx &ctx) {
 	// permutation
 	int i,j,k,l;
 	uint8_t round_counter;
@@ -228,7 +230,7 @@ void present_wb_init_player(wb_helper wbh, present_wb_ctx ctx) {
 
 
 
-void present_wb_init(const uint8_t *key, present_wb_ctx ctx) {
+void present_wb_init(const uint8_t *key, present_wb_ctx &ctx) {
 	ctx.rounds = PRESENT_ROUNDS;
 	wb_helper wbh;
 	present_wb_helper_init(ctx.rounds, wbh);
@@ -241,7 +243,7 @@ void present_wb_release(present_wb_ctx ctx) {}
 
 // full-round should be 31, i.e. rounds = 31
 // plain and cipher can overlap, so do key and cipher
-void present_wb_enc(const uint8_t *plain, const present_wb_ctx ctx, uint8_t *cipher)
+void present_wb_enc(const uint8_t *plain, const present_wb_ctx &ctx, uint8_t *cipher)
 {
 	uint8_t round_counter = 1;
 	

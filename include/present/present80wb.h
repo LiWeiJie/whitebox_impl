@@ -2,7 +2,7 @@
  * @Author: Weijie Li 
  * @Date: 2018-01-23 23:35:52 
  * @Last Modified by: Weijie Li
- * @Last Modified time: 2018-01-29 17:48:34
+ * @Last Modified time: 2018-01-29 18:15:29
  */
 
 
@@ -55,13 +55,13 @@ typedef struct _present_wb_ctx {
 // #define present_wb_init(key, ctx) present_wb_init_rounds((key), 31, (ctx))
 
 // full-round should be 31, i.e. rounds = 31
-void present_wb_init(const uint8_t *key, present_wb_ctx ctx);
+void present_wb_init(const uint8_t *key, present_wb_ctx &ctx);
 
 // recycling memory space
 void present_wb_release(present_wb_ctx ctx);
 
 // plain and cipher can overlap, so do key and cipher
-void present_wb_enc(const uint8_t *plain, const present_wb_ctx ctx, uint8_t *cipher);
+void present_wb_enc(const uint8_t *plain, const present_wb_ctx &ctx, uint8_t *cipher);
 
 
 #endif /* __PRESENT80WB_H__ */
