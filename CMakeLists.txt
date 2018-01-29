@@ -17,7 +17,7 @@ SET(LIB_SRCS ${LIB_SRCS} library/sms4/sms4_common.c library/sms4/sms4_setkey.c l
 
 # test
 SET(TEST_EXEC ${TEST_EXEC} test/utils/testutil.c)
-SET(TEST_EXEC ${TEST_EXEC} test/sms4_wb_test.cpp test/NTLTest.cpp test/klein_vector.cpp test/LBlock_test.cpp)
+SET(TEST_EXEC ${TEST_EXEC} test/sms4_wb_test.cpp test/NTLTest.cpp test/klein_vector.cpp test/LBlock_test.cpp test/present_test.cpp)
 
 SET(LIB_SRCS ${LIB_SRCS} library/affine/NTLUtils.cpp )
 SET(LIB_SRCS ${LIB_SRCS} library/affine/MatrixUtils.cpp )
@@ -32,7 +32,7 @@ AUX_SOURCE_DIRECTORY(library/LBlock LIB_SRCS)
 #present
 SET(LIB_SRCS
     ${LIB_SRCS}
-    library/present/present80.c
+    library/present/present80.cpp
     library/present/present80wb.cpp    
 )
 # AUX_SOURCE_DIRECTORY(library/present LIB_SRCS)

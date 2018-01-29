@@ -42,12 +42,9 @@
 #ifndef __PRESENT_H__
 #define __PRESENT_H__
 
-#ifdef __cplusplus 
-extern "C" { 
-#endif
 
 // comment this out if this is used on PC
-//#define __UINT_T__
+#define __UINT_T__
 
 #ifndef __UINT_T__
 #define __UINT_T__
@@ -55,6 +52,8 @@ typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned long uint32_t;
 typedef unsigned long long uint64_t;
+#else
+#include <stdint.h>
 #endif /* __UINT_T__ */
 
 // full-round PRESENT block cipher
@@ -64,8 +63,5 @@ typedef unsigned long long uint64_t;
 // plain and cipher can overlap, so do key and cipher
 void present_rounds(const uint8_t *plain, const uint8_t *key, const uint8_t rounds, uint8_t *cipher);
 
-#ifdef __cplusplus 
-} 
-#endif
 
 #endif /* __PRESENT_H__ */
