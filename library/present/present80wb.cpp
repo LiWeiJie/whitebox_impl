@@ -166,38 +166,38 @@ void present_wb_init_player(wb_helper wbh, present_wb_ctx ctx) {
 	int i,j,k,l;
 	uint8_t round_counter;
 
-	const static long pLayer0_hex = {	0x80000000,
-										0x08000000, 
-										0x00800000, 
-										0x00080000, 
-										0x00008000, 
-										0x00000800, 
-										0x00000080, 
-										0x00000008};
-	const static long pLayer1_hex = {	0x40000000,
-										0x04000000, 
-										0x00400000, 
-										0x00040000, 
-										0x00004000, 
-										0x00000400, 
-										0x00000040, 
-										0x00000004};
-	const static long pLayer2_hex = {	0x20000000,
-										0x02000000, 
-										0x00200000, 
-										0x00020000, 
-										0x00002000, 
-										0x00000200, 
-										0x00000020, 
-										0x00000002};											
-	const static long pLayer3_hex = {	0x10000000,
-										0x01000000, 
-										0x00100000, 
-										0x00010000, 
-										0x00001000, 
-										0x00000100, 
-										0x00000010, 
-										0x00000001};
+	static long pLayer0_hex[] = {	0x80000000,
+									0x08000000, 
+									0x00800000, 
+									0x00080000, 
+									0x00008000, 
+									0x00000800, 
+									0x00000080, 
+									0x00000008};
+	static long pLayer1_hex[] = {	0x40000000,
+									0x04000000, 
+									0x00400000, 
+									0x00040000, 
+									0x00004000, 
+									0x00000400, 
+									0x00000040, 
+									0x00000004};
+	static long pLayer2_hex[] = {	0x20000000,
+									0x02000000, 
+									0x00200000, 
+									0x00020000, 
+									0x00002000, 
+									0x00000200, 
+									0x00000020, 
+									0x00000002};											
+	static long pLayer3_hex[] = {	0x10000000,
+									0x01000000, 
+									0x00100000, 
+									0x00010000, 
+									0x00001000, 
+									0x00000100, 
+									0x00000010, 
+									0x00000001};
 
 	static matrix_transform_t p0, p1, p2, p3;
 	p0.SetDims(8,32); p1.SetDims(8,32); p2.SetDims(8,32); p3.SetDims(8,32);
@@ -206,13 +206,21 @@ void present_wb_init_player(wb_helper wbh, present_wb_ctx ctx) {
 	initMatrixFromBit(p2, pLayer2_hex);
 	initMatrixFromBit(p3, pLayer3_hex);
 
-
-										
-}
+	
+									
 
 	for (round_counter = 0; round_counter<ctx.rounds; round_counter++) {
 
-		// for (i = 0; i<)
+
+			ctx.pLayer[round_counter][0] = wbh.g[ round_counter+ 1][0] * ( p0* wbh.fc_inv[round_counter][0]);
+			ctx.pLayer[round_counter][1] = wbh.g[ round_counter+ 1][1] * ( p0* wbh.fc_inv[round_counter][1]);
+			ctx.pLayer[round_counter][2] = wbh.g[ round_counter+ 1][2] * ( p1* wbh.fc_inv[round_counter][0]);
+			ctx.pLayer[round_counter][3] = wbh.g[ round_counter+ 1][3] * ( p1* wbh.fc_inv[round_counter][1]);
+
+			ctx.pLayer[round_counter][4] = wbh.g[ round_counter+ 1][4] * ( p2* wbh.fc_inv[round_counter][0]);
+			ctx.pLayer[round_counter][5] = wbh.g[ round_counter+ 1][5] * ( p2* wbh.fc_inv[round_counter][1]);
+			ctx.pLayer[round_counter][6] = wbh.g[ round_counter+ 1][6] * ( p3* wbh.fc_inv[round_counter][0]);
+			ctx.pLayer[round_counter][7] = wbh.g[ round_counter+ 1][7] * ( p3* wbh.fc_inv[round_counter][1]);		   
 
 
 	}

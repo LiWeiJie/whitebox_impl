@@ -2,7 +2,7 @@
  * @Author: Weijie Li 
  * @Date: 2018-01-23 23:35:52 
  * @Last Modified by: Weijie Li
- * @Last Modified time: 2018-01-24 10:48:34
+ * @Last Modified time: 2018-01-29 17:48:34
  */
 
 
@@ -20,9 +20,6 @@
 
 #define PRESENT_WB_DEBUG 0
 
-#ifdef __cplusplus 
-extern "C" { 
-#endif
 
 
 // comment this out if this is used on PC
@@ -64,10 +61,7 @@ void present_wb_init(const uint8_t *key, present_wb_ctx ctx);
 void present_wb_release(present_wb_ctx ctx);
 
 // plain and cipher can overlap, so do key and cipher
-void present_wb(const uint8_t *plain, const present_wb_ctx ctx, uint8_t *cipher);
+void present_wb_enc(const uint8_t *plain, const present_wb_ctx ctx, uint8_t *cipher);
 
-#ifdef __cplusplus 
-}
-#endif
 
 #endif /* __PRESENT80WB_H__ */
