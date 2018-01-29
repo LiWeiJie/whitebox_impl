@@ -9,6 +9,7 @@
 #include <internal/ayssl_random.h>
 
 
+
 // actually is (sbox[] << 4)
 static const uint8_t sbox[16] = {
 	0xC0, 0x50, 0x60, 0xB0, 0x90, 0x00, 0xA0, 0xD0, 0x30, 0xE0, 0xF0, 0x80, 0x40, 0x70, 0x10, 0x20,
@@ -95,6 +96,7 @@ typedef struct _wb_helper {
 	uint8_t key_p[2][PRESENT_ROUNDS][8][256];
 
 	uint8_t state_p[2][PRESENT_ROUNDS][8][256];
+
 
 } wb_helper;
 
