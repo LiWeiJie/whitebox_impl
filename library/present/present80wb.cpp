@@ -8,8 +8,6 @@
 #include <present/present80wb.h>
 #include <internal/ayssl_random.h>
 
-
-
 // actually is (sbox[] << 4)
 static const uint8_t sbox[16] = {
 	0xC0, 0x50, 0x60, 0xB0, 0x90, 0x00, 0xA0, 0xD0, 0x30, 0xE0, 0xF0, 0x80, 0x40, 0x70, 0x10, 0x20,
@@ -93,35 +91,39 @@ static const uint8_t sbox_pmt_0[256] = {
 };
 
 typedef struct _wb_helper {
-	uint8_t key_p[2][PRESENT_ROUNDS][8][256];
+	matrix_transform_t f[PRESENT_ROUNDS][8];
+	matrix_transform_t f_inv[PRESENT_ROUNDS][8];
+	
+	// combine every 4 f matrix
+	matrix_transform_t fc[PRESENT_ROUNDS][2];
 
-	uint8_t state_p[2][PRESENT_ROUNDS][8][256];
-
-
+	matrix_transform_t g[PRESENT_ROUNDS+1][8];
+	matrix_transform_t g_inv[PRESENT_ROUNDS+1][8];
 } wb_helper;
 
 void present_wb_helper_init(int rounds, wb_helper wbh) {
-	int i,j,k;
-	uint8_t p[256];
-	for (i=0; i<256; i++) {
-		p[i] = i;
-	}
+	int i,k;
+	// uint8_t p[256];
+
+	// for (i=0; i<256; i++) {
+	// 	p[i] = i;
+	// }
 	for (i=0; i<rounds; i++) {
 		for (k=0; k<8; k++) {
-			ayssl_random_shutter_u8(p, 256);
-			for (j=0; j<256; j++) {
-				wbh.key_p[0][i][k][j] =p[j];
-				wbh.key_p[1][i][k][p[j]] = j;
-			}
+			genRandomInvMatrix( wbh.f[i][k], wbh.f_inv[i][k], 8);
 		}	
+		matrix_transform_t S, T;
+		combineDiagMat(T, wbh.f_inv[i][0], wbh.f_inv[i][1]);
+		combineDiagMat(S, T, wbh.f_inv[i][2]);
+		combineDiagMat(wbh.fc[i][0], S, wbh.f_inv[i][3]);
+
+		combineDiagMat(T, wbh.f_inv[i][4], wbh.f_inv[i][5]);
+		combineDiagMat(S, T, wbh.f_inv[i][6]);
+		combineDiagMat(wbh.fc[i][1], S, wbh.f_inv[i][7]);
 	}
-	for (i=0; i<rounds; i++) {
+	for (i=0; i<=rounds; i++) {
 		for (k=0; k<8; k++) {
-			ayssl_random_shutter_u8(p, 256);
-			for (j=0; j<256; j++) {
-				wbh.state_p[0][i][k][j] =p[j];
-				wbh.state_p[1][i][k][p[j]] = j;
-			}
+			genRandomInvMatrix( wbh.g[i][k], wbh.g_inv[i][k], 8);
 		}	
 	}
 }
@@ -148,9 +150,17 @@ void present_wb_init_rkAsbox(const uint8_t *key, wb_helper wbh, present_wb_ctx c
 	uint8_t round_key[10];
 	// combine addRoundKey and sbox
 
+	
+
 	for (i=0; i<8; i++) {
 		for (j=0; j<256; j++) {
-			ctx.rk[0][i][j] = wbh.key_p[0][0][i][ present_sbox8( j ^ key[i])];
+			uint8_t n_int;
+			n_int = applyMatToU8(wbh.g_inv[0][i], j);
+			n_int = present_sbox8( n_int ^ key[i]);
+			
+			ctx.rk[0][i][j] = applyMatToU8(wbh.f[0][j],  n_int);
+			n_int = applyMatToU8(wbh.g[0][i], j);
+			ctx.stmp[i][j] = n_int;
 		}
 	}
 
@@ -175,7 +185,10 @@ void present_wb_init_rkAsbox(const uint8_t *key, wb_helper wbh, present_wb_ctx c
 		for (i=0; i<8; i++) {
 			for (j=0; j<256; j++) {
 				//TODO: 消除p轮的置换
-				ctx.rk[round_counter-1][i][j] = wbh.key_p[0][round_counter-1][i][ present_sbox8( j ^ round_key[i])];
+				uint8_t n_int;
+				n_int = applyMatToU8(wbh.g_inv[round_counter-1][i], j);
+				n_int = present_sbox8( n_int ^ round_key[i]);
+				ctx.rk[round_counter-1][i][j] = applyMatToU8(wbh.f[round_counter-1][j],  n_int);
 			}
 		}
 		round_key[5] ^= round_counter << 2; // do this first, which may be faster
@@ -202,7 +215,10 @@ void present_wb_init_rkAsbox(const uint8_t *key, wb_helper wbh, present_wb_ctx c
 	for (i=0; i<8; i++) {
 		for (j=0; j<256; j++) {
 			//TODO: 消除p轮的置换
-			ctx.rk[round_counter][i][j] = j ^ round_key[i];
+			uint8_t n_int;
+			n_int = applyMatToU8(wbh.g_inv[round_counter][i], j);
+			n_int = present_sbox8( n_int ^ round_key[i]);
+			ctx.rk[round_counter][i][j] = n_int;
 		}
 	}
 

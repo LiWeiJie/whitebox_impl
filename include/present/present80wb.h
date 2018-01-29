@@ -52,6 +52,8 @@
 extern "C" { 
 #endif
 
+#include <NTL/mat_GF2.h>
+
 // comment this out if this is used on PC
 //#define __UINT_T__
 
@@ -67,6 +69,7 @@ typedef unsigned long long uint64_t;
 
 typedef struct _present_wb_ctx {
     uint8_t rk[PRESENT_ROUNDS+1][8][256];
+    uint8_t stmp[8][256]; // start map
     uint8_t secrect_sbox_pmt_3[PRESENT_ROUNDS][8][256];
     uint8_t secrect_sbox_pmt_2[PRESENT_ROUNDS][8][256];
     uint8_t secrect_sbox_pmt_1[PRESENT_ROUNDS][8][256];

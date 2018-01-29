@@ -10,6 +10,9 @@
 
 #include <NTL/mat_GF2.h>
 
+typedef NTL::mat_GF2 matrix_transform_t;
+typedef NTL::vec_GF2 vector_transform_t;
+
 typedef struct affine_transform_t {
     NTL::mat_GF2 linearMap;
     NTL::vec_GF2 vectorTranslation;
@@ -48,6 +51,7 @@ int genRandomInvMatrix(NTL::mat_GF2 &x,  NTL::mat_GF2 &inv_x, int n);
 
 uint32_t getDigitalFromVec(NTL::vec_GF2 &s);
 uint32_t get32FromVec(NTL::vec_GF2 &s);
+uint8_t get8FromVec(const vector_transform_t &s);
 
 
 int getVecFrom32(NTL::vec_GF2 &d, uint32_t s);
@@ -78,6 +82,7 @@ int genZeroVec(NTL::vec_GF2 &vec, int size);
 
 uint32_t addVecToU32(NTL::vec_GF2 &vec, uint32_t data);
 uint8_t addVecToU8(NTL::vec_GF2 &vec, uint8_t data);
+
 
 
 #endif   /* MATRIXUTILS_H */

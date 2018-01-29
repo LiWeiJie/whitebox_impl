@@ -130,6 +130,16 @@ uint32_t get32FromVec(NTL::vec_GF2 &s) {
 	return d;
 }
 
+uint8_t get8FromVec(const vector_transform_t &s) {
+	uint8_t d = 0;
+	int i;
+	for (i=0; i<8; i++) {
+		d <<=1 ;
+		d += ((s.get(i)==1)?1:0);
+	}
+	return d;
+}
+
 
 int getVecFrom32(NTL::vec_GF2 &d,uint32_t s) {
 	d.SetLength(32);
