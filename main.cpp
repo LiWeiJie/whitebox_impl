@@ -36,7 +36,7 @@ int main(int argc, char **argv)
     ct += test_sms4_wb128(3)==0;
     // ct += NTLTest()==0;
 
-    printf("succesful count:\t%d/4\n", ct);
+    printf("succesful sm4 count:\t%d/4\n", ct);
     
     printf("-------------klein test-------------\n");
     klein_test_main();

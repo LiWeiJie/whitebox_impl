@@ -317,5 +317,5 @@ int klein_test_main() {
 	klein_stand();
 	printf("\nklein wb test:\n");
 	klein_wb();
-	
+	return 0;
 }

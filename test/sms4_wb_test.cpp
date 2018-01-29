@@ -112,8 +112,6 @@ static struct cbc128_data {
     CBC128_TEST_VECTOR(4)    
 };
 
-
-
 /* only check the encrypted date can decrypt correct*/
 int test_sms4_wb128(int idx)
 {
