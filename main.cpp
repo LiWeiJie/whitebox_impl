@@ -17,26 +17,27 @@ void print_u8(uint8_t *out, int len) {
     printf("\n");
 }
 
-int test_sms4_wb128(int idx);
+// int test_sms4_wb128(int idx);
 int NTLTest();
 
 int klein_test_main();
 
 int lblock_test_main();
 int present80_test_main();
+int sm4_test_main();
 
 
 int main(int argc, char **argv) 
 {
     
-    int ct = 0;
-    ct += test_sms4_wb128(0)==0;
-    ct += test_sms4_wb128(1)==0;
-    ct += test_sms4_wb128(2)==0;
-    ct += test_sms4_wb128(3)==0;
-    // ct += NTLTest()==0;
+    // int ct = 0;
+    // ct += test_sms4_wb128(0)==0;
+    // ct += test_sms4_wb128(1)==0;
+    // ct += test_sms4_wb128(2)==0;
+    // ct += test_sms4_wb128(3)==0;
+    // // ct += NTLTest()==0;
 
-    printf("succesful sm4 count:\t%d/4\n", ct);
+    // printf("succesful sm4 count:\t%d/4\n", ct);
     
     printf("-------------klein test-------------\n");
     klein_test_main();
@@ -46,6 +47,9 @@ int main(int argc, char **argv)
 
     printf("-------------present80 test-------------\n");
     present80_test_main();
+
+    printf("-------------sm4 test-------------\n");
+    sm4_test_main();
 
     return 0;
 }
