@@ -14,7 +14,7 @@ const int Experiment_Times = 1;
 
 #include "count_cycles.h"
 
-int lblock_stadndard_test()
+int lblock_standard_test()
 {
 	uint8 plaintext[16];
 	uint8 key[20];
@@ -133,8 +133,9 @@ int lblock_wb_test()
 
 int lblock_test_main() {
 	printf("LBlock80 standard test:\n");
-	lblock_stadndard_test();
+	lblock_standard_test();
 	printf("LBlock80 wb test:\n");
 	lblock_wb_test();
+	printf("\n");
 	return 0;
 }
