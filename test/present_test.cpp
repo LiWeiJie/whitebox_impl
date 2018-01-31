@@ -2,7 +2,7 @@
  * @Author: Weijie Li 
  * @Date: 2018-01-29 17:29:57 
  * @Last Modified by: Weijie Li
- * @Last Modified time: 2018-01-29 22:56:22
+ * @Last Modified time: 2018-01-31 23:03:56
  */
 
 #include <stdio.h>
@@ -15,7 +15,6 @@
 
 int present80_stand()
 {
-
     //test values
 	const uint8_t key10[10] = {
 		0
@@ -60,11 +59,7 @@ int present80_stand()
 
 int present80_wb()
 {
-
-	//present80_testvectors();
-
     //test values
-
 	const uint8_t key10[10] = {
 		0
 		//0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -121,7 +116,8 @@ int present80_wb()
 int present80_test_main() {
 	printf("present80 standard test:\n");
 	present80_stand();
-	printf("\npresent80 wb test:\n");
+	printf("present80 wb test:\n");
 	present80_wb();	
+	printf("\n");
     return 0;
 }
