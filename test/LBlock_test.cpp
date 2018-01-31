@@ -12,6 +12,8 @@
 #include <LBlock/LBlock80wb.h>
 const int Experiment_Times = 1;
 
+#include "count_cycles.h"
+
 int lblock_stadndard_test()
 {
 	uint8 plaintext[16];
@@ -35,15 +37,21 @@ int lblock_stadndard_test()
 	}
 	//key[3]=15; key[2]=14; key[1]=13; key[0]=12;
 	key[3]=0; key[2]=0; key[1]=0; key[0]=0;
+	
 	begin = clock();
+	set_cycles_start();
+
 	for(i=0; i<Experiment_Times; i++)
 	{
 		LBlock80_encrypte_algorithm(plaintext,32,key,ciphertext);
 	}
+
+	set_cycles_ends();
 	end = clock();
 	double ts = end-begin;
 	ts = ts * 1000 / CLOCKS_PER_SEC;
 	printf("Encryption %d using %lf ms\n",Experiment_Times, ts);
+	printf("Encryption %d using %llu cycles\n",Experiment_Times, get_cycles_elapsed());
 	for(i=15; i>=0; i--)
 	{
 		printf("%x ",ciphertext[i]);		
@@ -85,26 +93,35 @@ int lblock_wb_test()
 	LBlock80wb_ctx ctx;
 
 	program_start = clock();
+	set_cycles_start();
+
 	gen_LBlock80_wb_ctx(&ctx, key);
 
+	set_cycles_ends();
 	program_end = clock();
 
 	double ts = program_end - program_start;
 	ts = ts*1000/CLOCKS_PER_SEC;
 
 	printf("The generating of encryptions table spend %lf ms\n", ts);
+	printf("The generating of encryptions table spend %llu cycles\n", get_cycles_elapsed());
+
 	program_start = clock();
+	set_cycles_start();
 
 	for(i=0; i<Experiment_Times; i++)
 	{
 		LBlock80wb_encrypte_algorithm(plaintext, &ctx, ciphertext);
 	}
+	
+	set_cycles_ends();
 	program_end = clock();
 
 	ts = program_end - program_start;
 	ts = ts*1000/CLOCKS_PER_SEC;
 
 	printf("Encryption %d using %lf ms\n",Experiment_Times, ts);
+	printf("Encryption %d using %llu cycles\n",Experiment_Times, get_cycles_elapsed());
 	for(i=15; i>=0; i--)
 	{
 		printf("%x ",ciphertext[i]);		
