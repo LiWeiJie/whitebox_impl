@@ -2,7 +2,7 @@
  * @Author: Weijie Li 
  * @Date: 2018-01-29 23:02:23 
  * @Last Modified by: Weijie Li
- * @Last Modified time: 2018-01-30 09:56:00
+ * @Last Modified time: 2018-02-01 00:08:11
  */
 
 #include <stdio.h>
@@ -11,6 +11,8 @@
 #include <sms4/sms4.h>
 #include <sms4wb/sms4_wb_generator.h>
 #include <sms4wb/sms4_wb.h>
+
+#include "count_cycles.h"
 
 #define EXPERIMENT_TIMES 1
 
@@ -40,18 +42,21 @@ int sm4_stand()
 	
 	clock_t program_start, program_end = 0;
 	program_start = clock();
+	set_cycles_start();
 
 	for(i = 0; i < EXPERIMENT_TIMES; i++)
 	{
 	    sms4_encrypt(message, cipher, &sm4_key);
     }
 
+	set_cycles_ends();
 	program_end = clock();
 
 	double ts = program_end-program_start;
 	ts = ts*1000/CLOCKS_PER_SEC;
 
 	printf("The %d times encryptions spend %lf ms\n", i, ts);
+	printf("The %d times encryptions spend %llu cycles\n", i, get_cycles_elapsed());
 
 	for (i = 0; i < 8; i++) {
 	    printf("%02X ", cipher[i]);
@@ -62,17 +67,20 @@ int sm4_stand()
     sms4_set_decrypt_key(&sm4_key, key16);
 
 	program_start = clock();
+	set_cycles_start();
 
 	for(i = 0; i < EXPERIMENT_TIMES; i++)
 	{
 	    sms4_decrypt(cipher, message, &sm4_key);
 	}
 
+	set_cycles_ends();
 	program_end = clock();
 	ts = program_end-program_start;
 	ts = ts*1000/CLOCKS_PER_SEC;
 
 	printf("The %d times decryptions spend %lf ms\n", i, ts);
+	printf("The %d times decryptions spend %llu cycles\n", i, get_cycles_elapsed());
 
 	for (i = 0; i < 8; i++) {
 		printf("%02X ", message[i]);
@@ -91,16 +99,20 @@ int sm4_wb()
 	int i;
 	clock_t program_start, program_end = 0;
 	program_start = clock();
+	set_cycles_start();
 
 	sms4_wb_gen_tables(key16, &wb_ctx, SMS4_ENCRYPT);
 
+	set_cycles_ends();
 	program_end = clock();
 	double ts = program_end - program_start;
 	ts = ts*1000/CLOCKS_PER_SEC;
 
 	printf("The generating of encryptions table spend %lf ms\n", ts);
+	printf("The generating of encryptions table spend %llu cycles\n", get_cycles_elapsed());
 	
 	program_start = clock();
+	set_cycles_start();
 
 	for(i = 0; i < EXPERIMENT_TIMES; i++)
 	{
@@ -109,12 +121,14 @@ int sm4_wb()
 	    //sm496_encrypt(message, key12, cipher);
     }
 
+	set_cycles_ends();
 	program_end = clock();
 
 	ts = program_end - program_start;
 	ts = ts*1000/CLOCKS_PER_SEC;
 
 	printf("The %d times encryptions spend %lf ms\n", i, ts);
+	printf("The %d times encryptions spend %llu cycles\n", i, get_cycles_elapsed());
 
 	for (i = 0; i < 8; i++) {
 	    printf("%02X ", cipher[i]);
@@ -147,7 +161,8 @@ int sm4_wb()
 int sm4_test_main() {
 	printf("sm4 standard test:\n");
 	sm4_stand();
-	printf("\nsm4 wb test:\n");
+	printf("sm4 wb test:\n");
 	sm4_wb();
+	printf("\n");
 	return 0;
 }
