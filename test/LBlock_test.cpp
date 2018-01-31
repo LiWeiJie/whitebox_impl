@@ -1,10 +1,9 @@
-/*************************************
-@berif  : this file is writed to test the speed of LBlock80,
-		  which is implemented in 4-bit S-box way.
-@author : Shusheng Liu
-@time   : 11.4 2011
-@Copyright (c) 2010, south china normal university
-**************************************/
+/*
+ * @Author: Weijie Li 
+ * @Date: 2018-01-31 15:15:39 
+ * @Last Modified by: Weijie Li
+ * @Last Modified time: 2018-01-31 18:27:10
+ */
 
 #include <stdio.h>
 #include <time.h>
