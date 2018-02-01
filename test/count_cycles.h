@@ -2,8 +2,11 @@
  * @Author: Weijie Li 
  * @Date: 2018-01-31 15:25:42 
  * @Last Modified by: Weijie Li
- * @Last Modified time: 2018-01-31 17:43:21
+ * @Last Modified time: 2018-02-01 09:09:18
  */
+#ifndef _COUNT_CYCLES_H_
+#define _COUNT_CYCLES_H_
+
 #include<stdio.h>
 
 #include <stdint.h>
@@ -58,3 +61,5 @@ static unsigned long long get_cycles_elapsed() {
         printf("exceed\n");
     return _end_cycles -_start_cycles;
 }
+
+#endif //_COUNT_CYCLES_H_
