@@ -25,16 +25,14 @@
 
 typedef struct klein80_wb_t {
     int rounds;
-    uint8_t T[8][256];     // final xor
+    // uint8_t T[8][256];     // final xor
     uint32_t Te[ROUNDS_80][8][256];
+    uint8_t SE[2][8][256]; //0 for initial encoding, 1 for final encoding
+    
 
     #ifdef MAT_BIJECTIONS
     uint8_t fi[8][256],g[8][256];
     #endif //MAT_BIJECTIONS
-
-    #ifdef AFFINE_IMPL
-    uint8_t SE[2][8][256]; //0 for initial encoding, 1 for final encoding
-    #endif
 
     #ifdef AFFINE_IMPL_DEBUG 
         affine_transform_t xorInv[ROUNDS_80+1][2];

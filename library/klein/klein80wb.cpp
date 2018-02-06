@@ -180,7 +180,6 @@ typedef struct klein_wb_assistant_t {
     #ifdef AFFINE_IMPL
     affine_transform_t P[ROUNDS_80+1][8][2];
     affine_transform_t PC[ROUNDS_80+1][2][2];
-    affine_transform_t SE[2][8][2];
     affine_transform_t xorMap[ROUNDS_80][2][2];
 
     #endif
@@ -272,7 +271,7 @@ int gen_klein80wb_ctx_table(const uint8_t *key, klein80_wb_t * klein80wb_ctx, in
 
     for (j=0; j<8; j++) {
         for (k=0; k<256; k++) {
-            klein80wb_ctx->T[j][k] = k^ round_key[j];
+            klein80wb_ctx->SE[0][j][k] = k^ round_key[j];
         }
     }
 
@@ -322,12 +321,12 @@ int gen_affine_matrix(klein80_wb_t* ctx, klein_wb_assistant_t *assistant) {
             ctx->xorInv[i][1].vectorTranslation = assistant->PC[i][1][0].vectorTranslation;
         #endif 
     }
-    for (i=0; i<8; i++) {
-        genRandomAffineMatrix(  assistant->SE[0][i][0].linearMap, assistant->SE[0][i][1].linearMap, \
-                                assistant->SE[0][i][0].vectorTranslation, assistant->SE[0][i][1].vectorTranslation, 8);
-        genRandomAffineMatrix(  assistant->SE[1][i][0].linearMap, assistant->SE[1][i][1].linearMap, \
-                                assistant->SE[1][i][0].vectorTranslation, assistant->SE[1][i][1].vectorTranslation, 8);
-    }
+    // for (i=0; i<8; i++) {
+    //     genRandomAffineMatrix(  assistant->SE[0][i][0].linearMap, assistant->SE[0][i][1].linearMap, \
+    //                             assistant->SE[0][i][0].vectorTranslation, assistant->SE[0][i][1].vectorTranslation, 8);
+    //     genRandomAffineMatrix(  assistant->SE[1][i][0].linearMap, assistant->SE[1][i][1].linearMap, \
+    //                             assistant->SE[1][i][0].vectorTranslation, assistant->SE[1][i][1].vectorTranslation, 8);
+    // }
     return 0;
 } 
 
@@ -355,10 +354,16 @@ int apply_affine_matrix(klein80_wb_t* ctx, klein_wb_assistant_t *assistant) {
 
     for (i=0; i<8; i++) {
         for (j=0; j<256; j++) {
-            ctx->SE[0][i][j] = applyAffineToU8(assistant->P[0][i][1], j);
-            ctx->SE[1][i][j] = applyAffineToU8(assistant->P[rounds][i][0], j);
+            ctx->SE[1][i][j] = ctx->SE[0][i][ applyAffineToU8(assistant->P[rounds][i][0], j)];
         }
     }
+
+    for (i=0; i<8; i++) {
+        for (j=0; j<256; j++) {
+            ctx->SE[0][i][j] = applyAffineToU8(assistant->P[0][i][1], j);
+        }
+    }
+    
     return 0;
 }
 
@@ -494,7 +499,7 @@ int gen_klein80wb_table_rounds(const uint8_t *key, klein80_wb_t * klein80wb_ctx,
 
 
 void klein80wb_encrypt(const uint8_t *plain, const klein80_wb_t * klein80wb_ctx,  uint8_t *cipher) {
-    int i,j;
+    int i;
     int rounds = klein80wb_ctx->rounds;
     uint8_t state[8];
 
@@ -621,24 +626,27 @@ void klein80wb_encrypt(const uint8_t *plain, const klein80_wb_t * klein80wb_ctx,
 #ifdef AFFINE_IMPL
 
     //output encoding
-    state[0] = klein80wb_ctx->SE[1][0][state[0]];
-    state[1] = klein80wb_ctx->SE[1][1][state[1]];
-    state[2] = klein80wb_ctx->SE[1][2][state[2]];
-    state[3] = klein80wb_ctx->SE[1][3][state[3]];
-    state[4] = klein80wb_ctx->SE[1][4][state[4]];
-    state[5] = klein80wb_ctx->SE[1][5][state[5]];
-    state[6] = klein80wb_ctx->SE[1][6][state[6]];
-    state[7] = klein80wb_ctx->SE[1][7][state[7]]; 
+    cipher[0] = klein80wb_ctx->SE[1][0][state[0]];
+    cipher[1] = klein80wb_ctx->SE[1][1][state[1]];
+    cipher[2] = klein80wb_ctx->SE[1][2][state[2]];
+    cipher[3] = klein80wb_ctx->SE[1][3][state[3]];
+    cipher[4] = klein80wb_ctx->SE[1][4][state[4]];
+    cipher[5] = klein80wb_ctx->SE[1][5][state[5]];
+    cipher[6] = klein80wb_ctx->SE[1][6][state[6]];
+    cipher[7] = klein80wb_ctx->SE[1][7][state[7]]; 
+
+#else
+    cipher[0] = klein80wb_ctx->SE[0][0][state[0]];
+    cipher[1] = klein80wb_ctx->SE[0][1][state[1]];
+    cipher[2] = klein80wb_ctx->SE[0][2][state[2]];
+    cipher[3] = klein80wb_ctx->SE[0][3][state[3]];
+    cipher[4] = klein80wb_ctx->SE[0][4][state[4]];
+    cipher[5] = klein80wb_ctx->SE[0][5][state[5]];
+    cipher[6] = klein80wb_ctx->SE[0][6][state[6]];
+    cipher[7] = klein80wb_ctx->SE[0][7][state[7]];
+    
 #endif
 
-    cipher[0] = klein80wb_ctx->T[0][state[0]];
-    cipher[1] = klein80wb_ctx->T[1][state[1]];
-    cipher[2] = klein80wb_ctx->T[2][state[2]];
-    cipher[3] = klein80wb_ctx->T[3][state[3]];
-    cipher[4] = klein80wb_ctx->T[4][state[4]];
-    cipher[5] = klein80wb_ctx->T[5][state[5]];
-    cipher[6] = klein80wb_ctx->T[6][state[6]];
-    cipher[7] = klein80wb_ctx->T[7][state[7]];
     return;
 }
 
