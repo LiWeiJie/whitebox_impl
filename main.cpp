@@ -1,5 +1,7 @@
 #include <iostream>
 
+#include <math/matrix_utils.h>
+
 using namespace std;
 
 void print_u8(uint8_t *out, int len) {
@@ -13,7 +15,8 @@ void print_u8(uint8_t *out, int len) {
 
 int main(int argc, char **argv) 
 {
-    
+    CombinedAffine ptr = (CombinedAffine)malloc(sizeof(combined_affine));
+    combined_affine_init(ptr, 4, 4);
     cout << "hello" << endl;
     return 0;
 }

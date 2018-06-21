@@ -79,7 +79,7 @@ set(macOS_M4RI ON)
 configure_file(config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/config.h @ONLY)
 
 #6.add executable file，添加要编译的可执行文件
-if (FALSE) 
+if (True) 
     message(${TEST_EXEC_NAME})
     message(${LIB_SRCS})
     message(${TEST_EXEC})
