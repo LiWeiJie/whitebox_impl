@@ -11,6 +11,7 @@ INCLUDE_DIRECTORIES(include)
 #4.source directory，源文件目录
 AUX_SOURCE_DIRECTORY(library LIB_SRCS)
 AUX_SOURCE_DIRECTORY(library/m4ri LIB_SRCS)
+AUX_SOURCE_DIRECTORY(library/math LIB_SRCS)
 
 # simon
 AUX_SOURCE_DIRECTORY(library/simon LIB_SRCS)
