@@ -2,7 +2,7 @@
  * @Author: Weijie Li 
  * @Date: 2018-06-21 16:51:34
  * @Last Modified by: Weijie Li
- * @Last Modified time: 2017-12-27 10:39:04
+ * @Last Modified time: 2018-06-23 15:35:16
  */
 
 
@@ -25,8 +25,9 @@ extern "C" {
  * @param enc encrypto mode. {SIMON_ENCRYPT: encrypto mode; SIMON_DECRYPT: decrypto mode}
  * @return int 0 is successful, otherwise fault
  */
-int simon_wb_gen_tables(const uint8_t *key, SimonWhitebox *simon_wb_ctx, int enc);
+int simon_whitebox_64_init(const uint8_t *key, int enc, simon_whitebox_content *swc);
 
+int simon_whitebox_release(simon_whitebox_content *swc);
 
 #ifdef __cplusplus
 }
