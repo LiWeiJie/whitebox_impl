@@ -15,22 +15,21 @@
 extern "C" {
 #endif
 
-struct combined_affine {
+typedef struct combined_affine {
     unsigned int size;          // size of sub matrix, n * n
     unsigned int number;    // number of sub matrix
     AffineTransform * sub_affine;
     AffineTransform * sub_affine_inv;
     AffineTransform *combined_affine;
     AffineTransform *combined_affine_inv;
-} combined_affine;
-typedef struct combined_affine *CombinedAffine;
+} CombinedAffine;
 
 
 // typedef mzd_t *MatGf2;
 
-int combined_affine_init(CombinedAffine cm, int sub_matrix_size, int sub_matrix_number);
+int combined_affine_init(CombinedAffine *cm, int sub_matrix_size, int sub_matrix_number);
 
-int combined_affine_free(CombinedAffine cm);
+int combined_affine_free(CombinedAffine *cm);
 
 
 #ifdef __cplusplus

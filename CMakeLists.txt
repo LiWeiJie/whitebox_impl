@@ -17,6 +17,10 @@ AUX_SOURCE_DIRECTORY(library/math LIB_SRCS)
 AUX_SOURCE_DIRECTORY(library/simon LIB_SRCS)
 AUX_SOURCE_DIRECTORY(library/simon_wb LIB_SRCS)
 
+# SWAN
+AUX_SOURCE_DIRECTORY(library/swan LIB_SRCS)
+AUX_SOURCE_DIRECTORY(library/swan_wb LIB_SRCS)
+
 
 # # AUX_SOURCE_DIRECTORY(library/sms4 LIB_SRCS)
 # SET(LIB_SRCS ${LIB_SRCS} library/sms4/sms4_common.c library/sms4/sms4_setkey.c library/sms4/sms4_enc.c)

@@ -11,7 +11,7 @@
 #define VERBOSE 0
 #define DUMP_MAT(x) if (VERBOSE) {DumpMatGf2(x);}
 
-int combined_affine_init(CombinedAffine cm, int sub_matrix_size, int sub_matrix_number) {
+int combined_affine_init(CombinedAffine *cm, int sub_matrix_size, int sub_matrix_number) {
     assert(sub_matrix_number >= 2);
     cm->number = sub_matrix_number;
     cm->sub_affine = malloc(sub_matrix_number * sizeof(AffineTransform));
@@ -92,7 +92,7 @@ int combined_affine_init(CombinedAffine cm, int sub_matrix_size, int sub_matrix_
     return 0;
 }
 
-int combined_affine_free(CombinedAffine cm) {
+int combined_affine_free(CombinedAffine *cm) {
     // TODO:
     int counter = cm->number;
     AffineTransform * aff_ptr = cm->sub_affine;
