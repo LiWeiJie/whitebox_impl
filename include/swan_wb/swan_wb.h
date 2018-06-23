@@ -8,8 +8,7 @@
 extern "C" {
 #endif
 
-struct swan_whitebox_content {
-    int type;
+typedef struct swan_whitebox_content {
     int block_size;
     int rounds;
     int piece_count;
