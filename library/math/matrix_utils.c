@@ -8,6 +8,9 @@
 #include <math/matrix_utils.h>
 #include <assert.h>
 
+#define VERBOSE 0
+#define DUMP_MAT(x) if (VERBOSE) {DumpMatGf2(x);}
+
 int combined_affine_init(CombinedAffine cm, int sub_matrix_size, int sub_matrix_number) {
     assert(sub_matrix_number >= 2);
     cm->number = sub_matrix_number;
@@ -23,8 +26,8 @@ int combined_affine_init(CombinedAffine cm, int sub_matrix_size, int sub_matrix_
     int counter = sub_matrix_number;
     while(counter--) {
         GenRandomAffineTransform(aff_ptr, aff_ptr_inv, sub_matrix_size);
-        DumpMatGf2(aff_ptr->linear_map);
-        DumpMatGf2(aff_ptr_inv->linear_map);
+        DUMP_MAT(aff_ptr->linear_map);
+        DUMP_MAT(aff_ptr_inv->linear_map);
         aff_ptr++;
         aff_ptr_inv++;
     }
@@ -51,9 +54,11 @@ int combined_affine_init(CombinedAffine cm, int sub_matrix_size, int sub_matrix_
         cm->combined_affine_inv->linear_map = T;
         MatGf2Free(S);
         S = T = NULL;
+
+        
     }
-    DumpMatGf2(cm->combined_affine->linear_map);
-    DumpMatGf2(cm->combined_affine_inv->linear_map);
+    DUMP_MAT(cm->combined_affine->linear_map);
+    DUMP_MAT(cm->combined_affine_inv->linear_map);
     
     int total_dim = sub_matrix_size*sub_matrix_number;
     cm->combined_affine->vector_translation = GenMatGf2(total_dim, 1);
@@ -70,12 +75,37 @@ int combined_affine_init(CombinedAffine cm, int sub_matrix_size, int sub_matrix_
         aff_ptr++;
         aff_ptr_inv++;
     }
-    DumpMatGf2(cm->combined_affine->vector_translation);
-    DumpMatGf2(cm->combined_affine_inv->vector_translation);
+    DUMP_MAT(cm->combined_affine->vector_translation);
+    DUMP_MAT(cm->combined_affine_inv->vector_translation);
+
+    T = GenMatGf2Mul( cm->combined_affine_inv->linear_map, cm->combined_affine->linear_map );
+    DUMP_MAT(T);
+    MatGf2Free(T);
+    T = NULL;
+
+    T = GenMatGf2Mul( cm->combined_affine_inv->linear_map, cm->combined_affine->vector_translation );
+    S = GenMatGf2Add(T, cm->combined_affine_inv->vector_translation );
+    DUMP_MAT(S);
+    MatGf2Free(T);
+    MatGf2Free(S);
+    S = T = NULL;
     return 0;
 }
 
 int combined_affine_free(CombinedAffine cm) {
     // TODO:
+    int counter = cm->number;
+    AffineTransform * aff_ptr = cm->sub_affine;
+    AffineTransform * aff_ptr_inv = cm->sub_affine_inv;
+    for (int i=0; i<counter; i++) {
+        AffineTransformFree(aff_ptr++);
+        AffineTransformFree(aff_ptr_inv++);
+    }
+    AffineTransformFree(cm->combined_affine);
+    AffineTransformFree(cm->combined_affine_inv);
+    free(cm->sub_affine);
+    free(cm->sub_affine_inv);
+    free(cm->combined_affine);
+    free(cm->combined_affine_inv);
     return 0;
 }
