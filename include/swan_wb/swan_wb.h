@@ -17,7 +17,7 @@ typedef struct swan_whitebox_content {
     unsigned int **lut;
 } swan_whitebox_content;
 
-int swan_whitebox_init(int rounds, int block_size, swan_whitebox_content* swc);
+int swan_whitebox_init(const uint8_t *key, int rounds, int block_size, swan_whitebox_content* swc);
 
 int swan_whitebox_release(swan_whitebox_content *swc);
 

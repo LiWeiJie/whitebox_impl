@@ -16,7 +16,7 @@ typedef struct swan_whitebox_helper
     CombinedAffine *ca;
 }swan_whitebox_helper;
 
-int swan_whitebox_helper_init(swan_whitebox_helper* swh, int rounds, int block_size)
+int swan_whitebox_helper_init(int rounds, int block_size, swan_whitebox_helper* swh)
 {
     swh->rounds = rounds;
     swh->block_size = block_size;
@@ -44,6 +44,8 @@ int swan_whitebox_helper_release(swan_whitebox_helper* swh)
             combined_affine_free(ptr++);
         }
     }
+    free(swh->ca);
+    swh->ca = NULL;
     return 0;
 }
 
@@ -58,10 +60,10 @@ int swan_whitebox_content_init(swan_whitebox_helper* swh, swan_whitebox_content*
     return 0;
 }
 
-int swan_whitebox_init(int rounds, int block_size, swan_whitebox_content* swc) 
+int swan_whitebox_init(const uint8_t *key, int rounds, int block_size, swan_whitebox_content* swc) 
 {
     swan_whitebox_helper* swh;
-    swan_whitebox_helper_init(swh, rounds, block_size);
+    swan_whitebox_helper_init(rounds, block_size, swh);
     
     
     
