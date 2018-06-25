@@ -3,6 +3,7 @@
 
 #include <simon/simon.h>
 #include <math/affine_transform.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,7 +18,11 @@ extern "C" {
 typedef struct simon_wb_t{
     uint32_t rounds;
     int block_size;
-    int piece_count;
+    int piece_count;   // piece_count = block_size / 8, every 8 bit combined as a piece
+    AffineTransform * round_aff;
+    uint8_t* lut[256]; // 2 * piece_count look up table needed for every round
+    uint8_t* SE[256]; // start encode
+    uint8_t* EE[8][256]; // end encode
 } simon_whitebox_content;
 
 /**

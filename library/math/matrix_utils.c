@@ -94,6 +94,7 @@ int combined_affine_init(CombinedAffine *cm, int sub_matrix_size, int sub_matrix
 
 int combined_affine_free(CombinedAffine *cm) {
     // TODO:
+    if (cm==NULL) return 0;
     int counter = cm->number;
     AffineTransform * aff_ptr = cm->sub_affine;
     AffineTransform * aff_ptr_inv = cm->sub_affine_inv;
