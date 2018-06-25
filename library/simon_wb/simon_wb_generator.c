@@ -11,6 +11,7 @@
 
 typedef struct simon_whitebox_helper 
 {
+    int aff_in_round;
     int block_size;
     int rounds;
     int piece_count; 
@@ -21,19 +22,20 @@ typedef struct simon_whitebox_helper
 
 int _simon_whitebox_helper_init(simon_whitebox_helper *swh, int block_size, int  rounds)
 {
+    swh->aff_in_round = 4;
     swh->rounds = rounds;
     swh->block_size = block_size;
-    swh->piece_count = block_size/2/8;
-    swh->ca = (CombinedAffine *)malloc( swh->rounds * 4 * sizeof(CombinedAffine));
+    swh->piece_count = block_size/2/PIECE_SIZE;
+    swh->ca = (CombinedAffine *)malloc( swh->rounds * swh->aff_in_round * sizeof(CombinedAffine));
     int i,j;
     CombinedAffine * ptr = swh->ca;
     for (i=0; i < swh->rounds; i++) {
-        for (j=0; j < 4; j++) {
-             combined_affine_init(ptr++, 8, swh->piece_count);
+        for (j=0; j < swh->aff_in_round; j++) {
+             combined_affine_init(ptr++, PIECE_SIZE, swh->piece_count);
         }
     }
-    combined_affine_init(&(swh->se), 8, swh->piece_count);
-    combined_affine_init(&(swh->ee), 8, swh->piece_count);
+    combined_affine_init(&(swh->se), PIECE_SIZE, swh->piece_count);
+    combined_affine_init(&(swh->ee), PIECE_SIZE, swh->piece_count);
     return 0;
 }
 
@@ -49,7 +51,7 @@ int simon_whitebox_helper_release(simon_whitebox_helper *swh)
     int i,j;
     CombinedAffine * ptr = swh->ca;
     for (i=0; i < swh->rounds; i++) {
-        for (j=0; j < 4; j++) {
+        for (j=0; j < swh->aff_in_round; j++) {
              combined_affine_free(ptr++);
         }
     }
@@ -60,27 +62,56 @@ int simon_whitebox_helper_release(simon_whitebox_helper *swh)
     return 0;
 }
 
-
+#include <stdio.h>
 
 int simon_whitebox_64_content_init(simon_whitebox_helper* swh, simon_whitebox_content* swc) 
 {
     // TODO:
+    swc->aff_in_round = 4;
     swc->rounds = swh->rounds;
     swc->block_size = swh->block_size;
     swc->piece_count = swh->piece_count;
-    swc->round_aff = malloc(swc->rounds * sizeof(AffineTransform*));
-    // swc->lut = malloc()
-
-    // start and end encode init 
+    swc->round_aff = (AffineTransform *)malloc(swc->rounds * swc->aff_in_round  * sizeof(AffineTransform));
+    swc->lut = (piece_t*)malloc(swc->rounds  * swc->piece_count * sizeof(piece_t));
+    swc->and_table = (piece_t**)malloc(swc->rounds * sizeof(piece_t*));
     int i,j;
-    // for (i=0; i<)
-
+    j = 1<<PIECE_SIZE;
+    for (i=0; i < swc->rounds; i++)
+    {
+        swc->and_table[i] = (piece_t*)malloc(j * sizeof(piece_t));
+    }
+    swc->SE = (piece_t*)malloc(swc->piece_count * sizeof(piece_t));
+    swc->EE = (piece_t*)malloc(swc->piece_count * sizeof(piece_t));
+    // printf("%lu\n", sizeof(piece_t));
+    // printf("%lu\n", swc->piece_count * sizeof(piece_t));
+    // printf("0x%lx\n", (unsigned long)swc->lut);
+    // piece_t* ptr = swc->lut+1;
+    // printf("0x%lx\n", (unsigned long)ptr);
+    
     return 0;
 }
 
 int simon_whitebox_release(simon_whitebox_content *swc)
 {
     // TODO:
+    // AffineTransformFree(swc->)
+
+    //free memory
+    free(swc->round_aff);
+    free(swc->lut);
+    int i,j;
+    j = 1<<PIECE_SIZE;
+    for (i=0; i < swc->rounds; i++)
+    {
+        free(swc->and_table[i]);
+    }
+    free(swc->and_table);
+    free(swc->SE);
+    free(swc->EE);
+    swc->round_aff = NULL;
+    swc->lut = NULL;
+    swc->and_table = NULL;
+    swc->SE = swc->EE = NULL;
     return 0;
 }
 

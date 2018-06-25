@@ -15,14 +15,24 @@ extern "C" {
 #define SIMON_ENCRYPT 1
 #define SIMON_DECRYPT 0
 
+#define PIECE_SIZE 8   //how many bits in a piece
+#if PIECE_SIZE == 8
+typedef uint8_t piece_t[1<<PIECE_SIZE];
+#elif PIECE_SIZE == 16
+typedef uint16_t piece_t[1<<PIECE_SIZE];
+#endif
+
+
 typedef struct simon_wb_t{
     uint32_t rounds;
+    int aff_in_round;
     int block_size;
     int piece_count;   // piece_count = block_size / 8, every 8 bit combined as a piece
     AffineTransform * round_aff;
-    uint8_t* lut[256]; // 2 * piece_count look up table needed for every round
-    uint8_t* SE[256]; // start encode
-    uint8_t* EE[8][256]; // end encode
+    piece_t* lut; // piece_count look up table (combined with round key) needed for every round
+    piece_t** and_table;  
+    piece_t* SE; // start encode
+    piece_t* EE; // end encode
 } simon_whitebox_content;
 
 /**
@@ -46,6 +56,10 @@ void simon_wb_enc(const uint8_t *in, uint8_t *out, simon_whitebox_content * swc)
  */
 int simon_wb_free(simon_whitebox_content *swc);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif //_SIMON_WB_H_
