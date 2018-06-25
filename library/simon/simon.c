@@ -31,7 +31,7 @@ uint64_t z_arrays[5] = {0b000110011100001101010010001011111011001110000110101001
 const uint8_t simon_rounds[] = {32, 36, 36, 42, 44, 52, 54, 68, 69, 72};
 const uint8_t  z_assign[] = {0, 0, 1, 2, 3, 2, 3, 2, 3, 4};
 
-uint8_t Simon_Init(SimSpk_Cipher *cipher_object, enum cipher_config_t cipher_cfg, enum mode_t c_mode, void *key, uint8_t *iv, uint8_t *counter) {
+uint8_t Simon_Init(SimSpk_Cipher *cipher_object, enum cipher_config_t cipher_cfg, enum enc_mode_t c_mode, void *key, uint8_t *iv, uint8_t *counter) {
 
     if (cipher_cfg > cfg_256_128 || cipher_cfg < cfg_64_32){
         return 1;

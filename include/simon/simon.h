@@ -11,7 +11,7 @@ typedef struct _bword_48{
   uint64_t data: 48;
 } bword_48;
 
-uint8_t Simon_Init(SimSpk_Cipher *cipher_object, enum cipher_config_t cipher_cfg, enum mode_t c_mode, void *key, uint8_t *iv, uint8_t *counter);
+uint8_t Simon_Init(SimSpk_Cipher *cipher_object, enum cipher_config_t cipher_cfg, enum enc_mode_t c_mode, void *key, uint8_t *iv, uint8_t *counter);
 
 uint8_t Simon_Encrypt(SimSpk_Cipher cipher_object, const void *plaintext, void *ciphertext);
 
