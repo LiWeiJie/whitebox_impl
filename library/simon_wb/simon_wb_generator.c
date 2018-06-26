@@ -9,17 +9,18 @@
 
 #include <math/matrix_utils.h>
 
+#include <stdio.h>
 typedef struct simon_whitebox_helper 
 {
     int aff_in_round;
     int block_size;
     int rounds;
     int piece_count; 
-    CombinedAffine *ca;   // 4 AFFINE for every round, rounds+1 needed
+    CombinedAffine *ca;   // aff_in_round AFFINE for every round, rounds+1 needed
     CombinedAffine se; // start encode
     CombinedAffine ee; // end encode
     MatGf2 shift8, shift1, shift2;
-    
+    uint8_t key_schedule[576];
 } simon_whitebox_helper;
 
 int _simon_whitebox_helper_init(simon_whitebox_helper *swh, int block_size, int  rounds)
@@ -79,7 +80,6 @@ int simon_whitebox_helper_release(simon_whitebox_helper *swh)
     return 0;
 }
 
-#include <stdio.h>
 
 int _simon_whitebox_content_init(simon_whitebox_helper* swh, simon_whitebox_content* swc) 
 {
@@ -90,12 +90,14 @@ int _simon_whitebox_content_init(simon_whitebox_helper* swh, simon_whitebox_cont
     swc->piece_count = swh->piece_count;
     swc->round_aff = (AffineTransform *)malloc(swc->rounds * swc->aff_in_round  * sizeof(AffineTransform));
     swc->lut = (piece_t*)malloc(swc->rounds  * swc->piece_count * sizeof(piece_t));
-    swc->and_table = (piece_t**)malloc(swc->rounds * sizeof(piece_t*));
-    int i,j;
+    swc->and_table = (piece_t**)malloc(swc->rounds * swc->piece_count * sizeof(piece_t*));
+    int i,j,k;
     j = 1<<PIECE_SIZE;
     for (i=0; i < swc->rounds; i++)
     {
-        swc->and_table[i] = (piece_t*)malloc(j * sizeof(piece_t));
+        for (k=0; k<swc->piece_count; k++) {
+            swc->and_table[i*swc->piece_count + k] = (piece_t*)malloc(j * sizeof(piece_t));
+        }
     }
     swc->SE = (piece_t*)malloc(swc->piece_count * sizeof(piece_t));
     swc->EE = (piece_t*)malloc(swc->piece_count * sizeof(piece_t));
@@ -118,14 +120,17 @@ int simon_whitebox_release(simon_whitebox_content *swc)
     // TODO:
     // AffineTransformFree(swc->)
 
+
     //free memory
     free(swc->round_aff);
     free(swc->lut);
-    int i,j;
+    int i,j,k;
     j = 1<<PIECE_SIZE;
     for (i=0; i < swc->rounds; i++)
     {
-        free(swc->and_table[i]);
+        for (k=0; k<swc->piece_count; k++) {
+            free(swc->and_table[i*swc->piece_count + k]);
+        }
     }
     free(swc->and_table);
     free(swc->SE);
@@ -141,16 +146,120 @@ int _simon_whitebox_content_assemble(simon_whitebox_helper* swh, simon_whitebox_
 {
     // FUTURE: due to the data type uint8, only PIECE_SIZE will be accept
     assert(PIECE_SIZE==8);
+    int piece_count = swh->piece_count;
     // start encode and end encode
-    int i,j;
+    int i,j,k;
     int piece_range = 1<<PIECE_SIZE;
-    for (i=0; i<swh->piece_count; i++) {
+    for (i=0; i < piece_count; i++) {
         for (j=0; j<piece_range; j++) {
             swc->SE[i][j] = ApplyAffineToU8(swh->se.sub_affine[i], j);
             swc->EE[i][j] = ApplyAffineToU8(swh->ee.sub_affine[i], j);
         }
     }
+
+    // *****************************
+    AffineTransform * aff_ptr = swc->round_aff + 0;
+    CombinedAffine * ca_ptr = swh->ca + 0;
+    AffineTransform * a_ptr = swh->se.combined_affine_inv;
+    AffineTransform * b_ptr = (ca_ptr+0)->combined_affine;
+    MatGf2 temp1, temp2;
+    temp1 = temp2 = NULL;
+
+    MatGf2 shift_list[] = {swh->shift8, swh->shift1, swh->shift2};
+    for (i=0; i<3; i++) {
+        //   B * shift_matrix * (A * x + a) + b = (B * shift_matrix * A) * x +( B * shift_matrix * a) + b
+        if (i!=0) {
+            aff_ptr++;
+        }
+        // ca_ptr;
+        // a_ptr;
+        b_ptr = (ca_ptr+1)->combined_affine;
+
+        MatGf2Mul( b_ptr->linear_map, shift_list[i], &temp1);
+        aff_ptr->linear_map = GenMatGf2Mul( temp1, a_ptr->linear_map);
+        
+        MatGf2Mul( temp1, a_ptr->vector_translation, &temp2);
+        aff_ptr->vector_translation = GenMatGf2Add( temp2, b_ptr->vector_translation);
+        
+        // DumpMatGf2(aff_ptr->linear_map );
+        // DumpMatGf2(aff_ptr->vector_translation );
+    }
+
+    // *****************************
+    piece_t* piece_ptr;
+    for (k=0; k<piece_count; k++){
+        piece_ptr = swc->and_table[0*piece_count + k];
+        for (i=0; i<piece_range; i++) {
+            for (j=0; j<piece_range; j++) {
+                uint8_t t8 =    ApplyAffineToU8((ca_ptr+0)->sub_affine_inv[k], i) & \
+                                    ApplyAffineToU8((ca_ptr+1)->sub_affine_inv[k], j);
+                piece_ptr[i][j] =   ApplyAffineToU8((ca_ptr+2)->sub_affine[k], t8);
+                // uint8_t che = ApplyAffineToU8((ca_ptr+2)->sub_affine_inv[k] , piece_ptr[i][j]);
+                // if (che!=t8) {
+                //     printf("failure\n");
+                //     return 1;
+                // }
+                // if (k==0) 
+                //     printf("%x ", piece_ptr[i][j] );
+            }
+            // if (k==0) 
+            //     printf("\n");
+        }
+    }
+
+    // *****************************
+    //   B * (A * x + a) + b = (B * A) * x +( B * a) + b
+    aff_ptr++;
+    // ca_ptr;
+    // a_ptr;
+    b_ptr = (ca_ptr+2)->combined_affine;
+
+    aff_ptr->linear_map = GenMatGf2Mul( b_ptr->linear_map, a_ptr->linear_map);
     
+    MatGf2Mul( b_ptr->linear_map, a_ptr->vector_translation, &temp2);
+    aff_ptr->vector_translation = GenMatGf2Add( temp2, b_ptr->vector_translation);
+
+    // *****************************
+    uint8_t * round_key_ptr;
+    piece_t* lut_ptr = swc->lut + 0;
+    for (k=0; k<piece_count; k++){
+        for (i=0; i<piece_range; i++) {
+            uint8_t t8 =    ApplyAffineToU8((ca_ptr+2)->sub_affine_inv[k], i) ^ *(round_key_ptr + k);
+            lut_ptr[k][i] = ApplyAffineToU8((ca_ptr+3)->sub_affine[k], t8);
+        }
+    }
+    // *****************************
+
+    // int round_id;
+    // for (round_id=1; round_id<swc->rounds; round_id++) {
+
+    //     for (i=0; i<3; i++) {
+    //         //   B * shift_matrix * (A * x + a) + b = (B * shift_matrix * A) * x +( B * shift_matrix * a) + b
+    //         if (i!=0) {
+    //             aff_ptr++;
+    //         }
+    //         // ca_ptr;
+    //         // a_ptr;
+    //         b_ptr = (ca_ptr+1)->combined_affine;
+
+    //         MatGf2Mul( b_ptr->linear_map, shift_list[i], &temp1);
+    //         aff_ptr->linear_map = GenMatGf2Mul( temp1, a_ptr->linear_map);
+            
+    //         MatGf2Mul( temp1, a_ptr->vector_translation, &temp2);
+    //         aff_ptr->vector_translation = GenMatGf2Add( temp2, b_ptr->vector_translation);
+            
+    //         // DumpMatGf2(aff_ptr->linear_map );
+    //         // DumpMatGf2(aff_ptr->vector_translation );
+    //     }
+    // }
+
+
+    MatGf2Free(temp1);
+    MatGf2Free(temp2);
+    temp1 = temp2 = NULL;
+    
+
+
     return 0;
 }
 
