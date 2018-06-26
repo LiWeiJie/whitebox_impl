@@ -139,6 +139,18 @@ int simon_whitebox_release(simon_whitebox_content *swc)
 
 int _simon_whitebox_content_assemble(simon_whitebox_helper* swh, simon_whitebox_content* swc)
 {
+    // FUTURE: due to the data type uint8, only PIECE_SIZE will be accept
+    assert(PIECE_SIZE==8);
+    // start encode and end encode
+    int i,j;
+    int piece_range = 1<<PIECE_SIZE;
+    for (i=0; i<swh->piece_count; i++) {
+        for (j=0; j<piece_range; j++) {
+            swc->SE[i][j] = ApplyAffineToU8(swh->se.sub_affine[i], j);
+            swc->EE[i][j] = ApplyAffineToU8(swh->ee.sub_affine[i], j);
+        }
+    }
+    
     return 0;
 }
 
