@@ -18,6 +18,8 @@ typedef struct simon_whitebox_helper
     CombinedAffine *ca;   // 4 AFFINE for every round, rounds+1 needed
     CombinedAffine se; // start encode
     CombinedAffine ee; // end encode
+    MatGf2 shift8, shift1, shift2;
+    
 } simon_whitebox_helper;
 
 int _simon_whitebox_helper_init(simon_whitebox_helper *swh, int block_size, int  rounds)
@@ -36,13 +38,28 @@ int _simon_whitebox_helper_init(simon_whitebox_helper *swh, int block_size, int 
     }
     combined_affine_init(&(swh->se), PIECE_SIZE, swh->piece_count);
     combined_affine_init(&(swh->ee), PIECE_SIZE, swh->piece_count);
+
+    
     return 0;
 }
 
+MatGf2 make_rotate_shift(int dim, int r)
+{
+    MatGf2 ind = GenMatGf2(dim, dim);
+    int i,j;
+    for (i=0; i<dim; i++) {
+        MatGf2Set(ind, i, (i+r)%dim, 1);
+    }
+    // DumpMatGf2(ind);
+    return ind;
+}
 
 int simon_whitebox_64_helper_init(simon_whitebox_helper *swh)
 // designed for Simon_64_128
 {
+    swh->shift1 = make_rotate_shift(32, 1);
+    swh->shift8 = make_rotate_shift(32, 8);
+    swh->shift2 = make_rotate_shift(32, 2);
     return _simon_whitebox_helper_init(swh, 64, 44);
 }
 
@@ -64,7 +81,7 @@ int simon_whitebox_helper_release(simon_whitebox_helper *swh)
 
 #include <stdio.h>
 
-int simon_whitebox_64_content_init(simon_whitebox_helper* swh, simon_whitebox_content* swc) 
+int _simon_whitebox_content_init(simon_whitebox_helper* swh, simon_whitebox_content* swc) 
 {
     // TODO:
     swc->aff_in_round = 4;
@@ -91,6 +108,11 @@ int simon_whitebox_64_content_init(simon_whitebox_helper* swh, simon_whitebox_co
     return 0;
 }
 
+int simon_whitebox_64_content_init(simon_whitebox_helper* swh, simon_whitebox_content* swc) 
+{
+    return _simon_whitebox_content_init(swh, swc);
+}
+
 int simon_whitebox_release(simon_whitebox_content *swc)
 {
     // TODO:
@@ -115,6 +137,17 @@ int simon_whitebox_release(simon_whitebox_content *swc)
     return 0;
 }
 
+int _simon_whitebox_content_assemble(simon_whitebox_helper* swh, simon_whitebox_content* swc)
+{
+    return 0;
+}
+
+int simon_whitebox_64_content_assemble(simon_whitebox_helper* swh, simon_whitebox_content* swc)
+{
+    return _simon_whitebox_content_assemble(swh, swc);
+}
+
+
 
 
 int simon_whitebox_64_init(const uint8_t *key, int enc, simon_whitebox_content *swc) 
@@ -123,6 +156,7 @@ int simon_whitebox_64_init(const uint8_t *key, int enc, simon_whitebox_content *
     simon_whitebox_64_helper_init(swh);
 
     simon_whitebox_64_content_init(swh, swc);
+    simon_whitebox_64_content_assemble(swh, swc);
 
     
     
