@@ -222,7 +222,7 @@ int _simon_whitebox_content_assemble(simon_whitebox_helper* swh, simon_whitebox_
     aff_ptr->vector_translation = GenMatGf2Add( temp2, b_ptr->vector_translation);
 
     // *****************************
-    uint8_t * round_key_ptr;
+    uint8_t * round_key_ptr = swh->key_schedule + 0;
     piece_t* lut_ptr = swc->lut + 0;
     for (k=0; k<piece_count; k++){
         for (i=0; i<piece_range; i++) {
@@ -232,28 +232,76 @@ int _simon_whitebox_content_assemble(simon_whitebox_helper* swh, simon_whitebox_
     }
     // *****************************
 
-    // int round_id;
-    // for (round_id=1; round_id<swc->rounds; round_id++) {
+    int round_id;
 
-    //     for (i=0; i<3; i++) {
-    //         //   B * shift_matrix * (A * x + a) + b = (B * shift_matrix * A) * x +( B * shift_matrix * a) + b
-    //         if (i!=0) {
-    //             aff_ptr++;
-    //         }
-    //         // ca_ptr;
-    //         // a_ptr;
-    //         b_ptr = (ca_ptr+1)->combined_affine;
+    CombinedAffine * prev_ca_ptr = NULL;
+    for (round_id=1; round_id<swc->rounds; round_id++) {
+        prev_ca_ptr = ca_ptr;
+        ca_ptr += swh->aff_in_round;
+        for (i=0; i<3; i++) {
+            //   B * shift_matrix * (A * x + a) + b = (B * shift_matrix * A) * x +( B * shift_matrix * a) + b
+            aff_ptr++;
+            // ca_ptr;
+            a_ptr = (prev_ca_ptr+3)->combined_affine_inv;
+            b_ptr = (ca_ptr+1)->combined_affine;
 
-    //         MatGf2Mul( b_ptr->linear_map, shift_list[i], &temp1);
-    //         aff_ptr->linear_map = GenMatGf2Mul( temp1, a_ptr->linear_map);
+            MatGf2Mul( b_ptr->linear_map, shift_list[i], &temp1);
+            aff_ptr->linear_map = GenMatGf2Mul( temp1, a_ptr->linear_map);
             
-    //         MatGf2Mul( temp1, a_ptr->vector_translation, &temp2);
-    //         aff_ptr->vector_translation = GenMatGf2Add( temp2, b_ptr->vector_translation);
+            MatGf2Mul( temp1, a_ptr->vector_translation, &temp2);
+            aff_ptr->vector_translation = GenMatGf2Add( temp2, b_ptr->vector_translation);
             
-    //         // DumpMatGf2(aff_ptr->linear_map );
-    //         // DumpMatGf2(aff_ptr->vector_translation );
-    //     }
-    // }
+            // DumpMatGf2(aff_ptr->linear_map );
+            // DumpMatGf2(aff_ptr->vector_translation );
+        }
+
+        // *****************************
+        for (k=0; k<piece_count; k++){
+            piece_ptr = swc->and_table[round_id * piece_count + k];
+            for (i=0; i<piece_range; i++) {
+                for (j=0; j<piece_range; j++) {
+                    uint8_t t8 =    ApplyAffineToU8((ca_ptr+0)->sub_affine_inv[k], i) & \
+                                        ApplyAffineToU8((ca_ptr+1)->sub_affine_inv[k], j);
+                    piece_ptr[i][j] =   ApplyAffineToU8((ca_ptr+2)->sub_affine[k], t8);
+                    // uint8_t che = ApplyAffineToU8((ca_ptr+2)->sub_affine_inv[k] , piece_ptr[i][j]);
+                    // if (che!=t8) {
+                    //     printf("failure\n");
+                    //     return 1;
+                    // }
+                    // if (k==0) 
+                    //     printf("%x ", piece_ptr[i][j] );
+                }
+                // if (k==0) 
+                //     printf("\n");
+            }
+        }
+
+        // *****************************
+        //   B * (A * x + a) + b = (B * A) * x +( B * a) + b
+        aff_ptr++;
+        // ca_ptr;
+        // a_ptr;
+        b_ptr = (ca_ptr+2)->combined_affine;
+
+        aff_ptr->linear_map = GenMatGf2Mul( b_ptr->linear_map, a_ptr->linear_map);
+        
+        MatGf2Mul( b_ptr->linear_map, a_ptr->vector_translation, &temp2);
+        aff_ptr->vector_translation = GenMatGf2Add( temp2, b_ptr->vector_translation);
+
+        // *****************************
+        round_key_ptr = swh->key_schedule + round_id * swc->piece_count;
+        lut_ptr = swc->lut + round_id * piece_count;
+        for (k=0; k<piece_count; k++){
+            for (i=0; i<piece_range; i++) {
+                uint8_t t8 = ApplyAffineToU8((ca_ptr+2)->sub_affine_inv[k], i) ^ *(round_key_ptr + k);
+                lut_ptr[k][i] = ApplyAffineToU8((ca_ptr+3)->sub_affine[k], t8);
+            }
+        }
+
+    }
+
+    // printf("aff total: %ld: %u\n", aff_ptr + 1 - swc->round_aff, swc->rounds * swc->aff_in_round );
+    // printf("lut total: %ld: %u\n", lut_ptr + piece_count - swc->lut, swc->rounds * piece_count );
 
 
     MatGf2Free(temp1);
