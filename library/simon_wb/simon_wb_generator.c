@@ -1,4 +1,9 @@
-// 
+/*
+ * @Author: Weijie Li 
+ * @Date: 2018-06-23 16:51:34
+ * @Last Modified by: Weijie Li
+ * @Last Modified time: 2018-06-27 14:45:27
+ */
 
 #include <simon_wb/simon_wb_generator.h>
 
@@ -17,8 +22,8 @@ typedef struct simon_whitebox_helper
     int rounds;
     int piece_count; 
     CombinedAffine *ca;   // aff_in_round AFFINE for every round, rounds+1 needed
-    CombinedAffine se; // start encode
-    CombinedAffine ee; // end encode
+    CombinedAffine se[2]; // start encode
+    CombinedAffine ee[2]; // end encode
     MatGf2 shift8, shift1, shift2;
     uint8_t key_schedule[576];
 } simon_whitebox_helper;
@@ -37,9 +42,10 @@ int _simon_whitebox_helper_init(simon_whitebox_helper *swh, int block_size, int 
              combined_affine_init(ptr++, PIECE_SIZE, swh->piece_count);
         }
     }
-    combined_affine_init(&(swh->se), PIECE_SIZE, swh->piece_count);
-    combined_affine_init(&(swh->ee), PIECE_SIZE, swh->piece_count);
-
+    combined_affine_init(&(swh->se[0]), PIECE_SIZE, swh->piece_count);
+    combined_affine_init(&(swh->se[1]), PIECE_SIZE, swh->piece_count);
+    combined_affine_init(&(swh->ee[0]), PIECE_SIZE, swh->piece_count);
+    combined_affine_init(&(swh->ee[1]), PIECE_SIZE, swh->piece_count);
     
     return 0;
 }
@@ -78,8 +84,10 @@ int simon_whitebox_helper_release(simon_whitebox_helper *swh)
     }
     free(swh->ca);
     swh->ca = NULL;
-    combined_affine_free(&swh->se);
-    combined_affine_free(&swh->ee);
+    combined_affine_free(&swh->se[0]);
+    combined_affine_free(&swh->se[1]);
+    combined_affine_free(&swh->ee[0]);
+    combined_affine_free(&swh->ee[1]);
     return 0;
 }
 
@@ -102,8 +110,8 @@ int _simon_whitebox_content_init(simon_whitebox_helper* swh, simon_whitebox_cont
             swc->and_table[i*swc->piece_count + k] = (piece_t*)malloc(j * sizeof(piece_t));
         }
     }
-    swc->SE = (piece_t*)malloc(swc->piece_count * sizeof(piece_t));
-    swc->EE = (piece_t*)malloc(swc->piece_count * sizeof(piece_t));
+    swc->SE = (piece_t*)malloc(2 * swc->piece_count * sizeof(piece_t));
+    swc->EE = (piece_t*)malloc(2 * swc->piece_count * sizeof(piece_t));
     // printf("%lu\n", sizeof(piece_t));
     // printf("%lu\n", swc->piece_count * sizeof(piece_t));
     // printf("0x%lx\n", (unsigned long)swc->lut);
@@ -115,6 +123,7 @@ int _simon_whitebox_content_init(simon_whitebox_helper* swh, simon_whitebox_cont
 
 int simon_whitebox_64_content_init(simon_whitebox_helper* swh, simon_whitebox_content* swc) 
 {
+    swc->cfg = cfg_128_64;
     return _simon_whitebox_content_init(swh, swc);
 }
 
@@ -122,12 +131,14 @@ int simon_whitebox_release(simon_whitebox_content *swc)
 {
     // TODO:
     // AffineTransformFree(swc->)
-
+    int i,j,k;
+    for (i=0; i<swc->rounds * swc->aff_in_round; i++) {
+        AffineTransformFree(swc->round_aff + i);
+    }
 
     //free memory
     free(swc->round_aff);
     free(swc->lut);
-    int i,j,k;
     j = 1<<PIECE_SIZE;
     for (i=0; i < swc->rounds; i++)
     {
@@ -152,17 +163,26 @@ int _simon_whitebox_content_assemble(simon_whitebox_helper* swh, simon_whitebox_
     // start encode and end encode
     int i,j,k;
     int piece_range = 1<<PIECE_SIZE;
+
+    CombinedAffine * last_round_ca_ptr = swh->ca + (swc->rounds-1) * swc->aff_in_round;
     for (i=0; i < piece_count; i++) {
         for (j=0; j<piece_range; j++) {
-            swc->SE[i][j] = ApplyAffineToU8(swh->se.sub_affine[i], j);
-            swc->EE[i][j] = ApplyAffineToU8(swh->ee.sub_affine[i], j);
+            swc->SE[i][j] = ApplyAffineToU8(swh->se[0].sub_affine[i], j);
+            swc->EE[i][j] = ApplyAffineToU8((last_round_ca_ptr + 3)->sub_affine_inv[i], j);
+        }
+    }
+    last_round_ca_ptr -= swc->aff_in_round;
+    for (i=0; i < piece_count; i++) {
+        for (j=0; j<piece_range; j++) {
+            swc->SE[piece_count + i][j] = ApplyAffineToU8(swh->se[1].sub_affine[i], j);
+            swc->EE[piece_count + i][j] = ApplyAffineToU8((last_round_ca_ptr + 3)->sub_affine_inv[i], j);
         }
     }
 
     // *****************************
     AffineTransform * aff_ptr = swc->round_aff + 0;
     CombinedAffine * ca_ptr = swh->ca + 0;
-    AffineTransform * a_ptr = swh->se.combined_affine_inv;
+    AffineTransform * a_ptr = swh->se[0].combined_affine_inv;
     AffineTransform * b_ptr = (ca_ptr+0)->combined_affine;
     MatGf2 temp1, temp2;
     temp1 = temp2 = NULL;
@@ -213,7 +233,7 @@ int _simon_whitebox_content_assemble(simon_whitebox_helper* swh, simon_whitebox_
     //   B * (A * x + a) + b = (B * A) * x +( B * a) + b
     aff_ptr++;
     // ca_ptr;
-    // a_ptr;
+    a_ptr = swh->se[1].combined_affine_inv;
     b_ptr = (ca_ptr+2)->combined_affine;
 
     aff_ptr->linear_map = GenMatGf2Mul( b_ptr->linear_map, a_ptr->linear_map);
@@ -235,6 +255,7 @@ int _simon_whitebox_content_assemble(simon_whitebox_helper* swh, simon_whitebox_
     int round_id;
 
     CombinedAffine * prev_ca_ptr = NULL;
+    AffineTransform * older_than_prev = swh->se[0].combined_affine_inv;
     for (round_id=1; round_id<swc->rounds; round_id++) {
         prev_ca_ptr = ca_ptr;
         ca_ptr += swh->aff_in_round;
@@ -283,10 +304,12 @@ int _simon_whitebox_content_assemble(simon_whitebox_helper* swh, simon_whitebox_
         // a_ptr;
         b_ptr = (ca_ptr+2)->combined_affine;
 
-        aff_ptr->linear_map = GenMatGf2Mul( b_ptr->linear_map, a_ptr->linear_map);
+        aff_ptr->linear_map = GenMatGf2Mul( b_ptr->linear_map, older_than_prev->linear_map);
         
-        MatGf2Mul( b_ptr->linear_map, a_ptr->vector_translation, &temp2);
+        MatGf2Mul( b_ptr->linear_map, older_than_prev->vector_translation, &temp2);
         aff_ptr->vector_translation = GenMatGf2Add( temp2, b_ptr->vector_translation);
+
+        older_than_prev = (prev_ca_ptr+3)->combined_affine_inv;
 
         // *****************************
         round_key_ptr = swh->key_schedule + round_id * swc->piece_count;
@@ -303,13 +326,10 @@ int _simon_whitebox_content_assemble(simon_whitebox_helper* swh, simon_whitebox_
     // printf("aff total: %ld: %u\n", aff_ptr + 1 - swc->round_aff, swc->rounds * swc->aff_in_round );
     // printf("lut total: %ld: %u\n", lut_ptr + piece_count - swc->lut, swc->rounds * piece_count );
 
-
     MatGf2Free(temp1);
     MatGf2Free(temp2);
     temp1 = temp2 = NULL;
     
-
-
     return 0;
 }
 
