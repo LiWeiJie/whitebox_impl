@@ -2,7 +2,7 @@
  * @Author: Weijie Li 
  * @Date: 2017-11-27 16:27:56 
  * @Last Modified by: Weijie Li
- * @Last Modified time: 2017-12-13 15:47:50
+ * @Last Modified time: 2018-06-27 21:42:27
  */
 
 
@@ -154,6 +154,7 @@ void MatGf2Free(MatGf2 mat);
 
 
 uint8_t ApplyMatToU8(const MatGf2 mat, uint8_t data);
+uint32_t ApplyMatToU32(const MatGf2 mat, uint32_t data);
 
 /**
  * Return -1,0,1 if if A < B, A == B or A > B respectively.

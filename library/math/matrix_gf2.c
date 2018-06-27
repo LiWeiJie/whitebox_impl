@@ -2,7 +2,7 @@
  * @Author: Weijie Li 
  * @Date: 2017-11-27 16:45:31 
  * @Last Modified by: Weijie Li
- * @Last Modified time: 2017-12-13 15:48:18
+ * @Last Modified time: 2018-06-27 21:42:35
  */
 #include <math/matrix_gf2.h>
 
@@ -302,6 +302,15 @@ uint8_t ApplyMatToU8(const MatGf2 mat, uint8_t data) {
 	InitVecFromBit(data, a);
 	MatGf2Mul(mat, a, &a);
 	uint8_t result = (uint8_t)getDigitalFromVec(a);
+	MatGf2Free(a);
+	return result;
+}
+
+uint32_t ApplyMatToU32(const MatGf2 mat, uint32_t data) {
+	MatGf2 a = GenMatGf2(32,1);
+	InitVecFromBit(data, a);
+	MatGf2Mul(mat, a, &a);
+	uint32_t result = (uint32_t)getDigitalFromVec(a);
 	MatGf2Free(a);
 	return result;
 }

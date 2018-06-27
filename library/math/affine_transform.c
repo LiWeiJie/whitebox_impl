@@ -2,7 +2,7 @@
  * @Author: Weijie Li 
  * @Date: 2017-11-27 16:44:54 
  * @Last Modified by: Weijie Li
- * @Last Modified time: 2017-12-13 22:44:13
+ * @Last Modified time: 2018-06-27 21:41:55
  */
 
 #include <math/affine_transform.h>
@@ -24,6 +24,15 @@ int GenRandomAffineTransform(AffineTransform *at, AffineTransform *at_inv, int d
     MatGf2Inv(at->linear_map, &(at_inv->linear_map));
     MatGf2Mul(at_inv->linear_map, at->vector_translation, &(at_inv->vector_translation));
 
+    return 0;
+}
+
+int GenIndAffineTransform(AffineTransform *at, AffineTransform *at_inv, int dim) {
+    at->linear_map = GenIndMatrix(dim);
+    at->vector_translation = GenMatGf2(dim, 1);
+
+    at_inv->linear_map = GenIndMatrix(dim);
+    at_inv->vector_translation = GenMatGf2(dim, 1);
     return 0;
 }
 
