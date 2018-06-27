@@ -55,12 +55,15 @@ MatGf2 make_rotate_shift(int dim, int r)
     return ind;
 }
 
-int simon_whitebox_64_helper_init(simon_whitebox_helper *swh)
+int simon_whitebox_64_helper_init(const uint8_t *key, simon_whitebox_helper *swh)
 // designed for Simon_64_128
 {
     swh->shift1 = make_rotate_shift(32, 1);
     swh->shift8 = make_rotate_shift(32, 8);
     swh->shift2 = make_rotate_shift(32, 2);
+    SimSpk_Cipher cipher_object;
+    Simon_Init(&cipher_object, cfg_128_64, ECB, key, NULL, NULL);
+    memcpy(swh->key_schedule, cipher_object.key_schedule, 576);
     return _simon_whitebox_helper_init(swh, 64, 44);
 }
 
@@ -144,7 +147,6 @@ int simon_whitebox_release(simon_whitebox_content *swc)
 
 int _simon_whitebox_content_assemble(simon_whitebox_helper* swh, simon_whitebox_content* swc)
 {
-    // FUTURE: due to the data type uint8, only PIECE_SIZE will be accept
     assert(PIECE_SIZE==8);
     int piece_count = swh->piece_count;
     // start encode and end encode
@@ -224,7 +226,7 @@ int _simon_whitebox_content_assemble(simon_whitebox_helper* swh, simon_whitebox_
     piece_t* lut_ptr = swc->lut + 0;
     for (k=0; k<piece_count; k++){
         for (i=0; i<piece_range; i++) {
-            uint8_t t8 =    ApplyAffineToU8((ca_ptr+2)->sub_affine_inv[k], i) ^ *(round_key_ptr + k);
+            uint8_t t8 = ApplyAffineToU8((ca_ptr+2)->sub_affine_inv[k], i) ^ *(round_key_ptr + k);
             lut_ptr[k][i] = ApplyAffineToU8((ca_ptr+3)->sub_affine[k], t8);
         }
     }
@@ -274,7 +276,7 @@ int simon_whitebox_64_content_assemble(simon_whitebox_helper* swh, simon_whitebo
 int simon_whitebox_64_init(const uint8_t *key, int enc, simon_whitebox_content *swc) 
 {
     simon_whitebox_helper* swh = (simon_whitebox_helper*)malloc(sizeof(simon_whitebox_helper));
-    simon_whitebox_64_helper_init(swh);
+    simon_whitebox_64_helper_init(key, swh);
 
     simon_whitebox_64_content_init(swh, swc);
     simon_whitebox_64_content_assemble(swh, swc);

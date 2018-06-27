@@ -17,9 +17,8 @@ extern "C" {
 
 #define PIECE_SIZE 8   //how many bits in a piece
 #if PIECE_SIZE == 8
-typedef uint8_t piece_t[1<<PIECE_SIZE];
-#elif PIECE_SIZE == 16
-typedef uint16_t piece_t[1<<PIECE_SIZE];
+typedef uint8_t simon_wb_unit;
+typedef simon_wb_unit piece_t[1<<PIECE_SIZE];
 #endif
 
 
