@@ -46,6 +46,16 @@ uint32_t ApplyAffineToU32(const AffineTransform aff, uint32_t x) {
     return result;
 }
 
+uint16_t ApplyAffineToU16(const AffineTransform aff, uint16_t x) {
+    MatGf2 mat_x = NULL;
+    ReAllocatedMatGf2(16, 1, &mat_x);
+    InitVecFromBit(x, mat_x);
+    MatGf2Add( MatGf2Mul(aff.linear_map, mat_x, &mat_x), aff.vector_translation, &mat_x);
+    uint16_t result =  (uint16_t)getDigitalFromVec(mat_x);
+    MatGf2Free(mat_x);
+    return result;
+}
+
 uint8_t ApplyAffineToU8(const AffineTransform aff, uint8_t data) {
     MatGf2 mat_x = NULL;
     ReAllocatedMatGf2(8, 1, &mat_x);
