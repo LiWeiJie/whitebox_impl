@@ -3,6 +3,11 @@
 
 #include "cipher_constants.h"
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct _bword_24{
   uint32_t data: 24;
 } bword_24;
@@ -37,5 +42,10 @@ void Simon_Decrypt_96(const uint8_t round_limit, const uint8_t *key_schedule, co
                       uint8_t *plaintext);
 void Simon_Decrypt_128(const uint8_t round_limit, const uint8_t *key_schedule, const uint8_t *ciphertext,
                        uint8_t *plaintext);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

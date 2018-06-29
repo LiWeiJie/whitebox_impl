@@ -23,7 +23,7 @@ typedef struct simon_whitebox_helper
     int piece_count; 
     CombinedAffine *ca;   // aff_in_round AFFINE for every round, rounds+1 needed
     CombinedAffine se[2]; // start encode
-    CombinedAffine ee[2]; // end encode
+    // CombinedAffine ee[2]; // end encode
     MatGf2 shift8, shift1, shift2;
     uint8_t key_schedule[576];
 } simon_whitebox_helper;
@@ -39,13 +39,11 @@ int _simon_whitebox_helper_init(simon_whitebox_helper *swh, int block_size, int 
     CombinedAffine * ptr = swh->ca;
     for (i=0; i < swh->rounds; i++) {
         for (j=0; j < swh->aff_in_round; j++) {
-             combined_affine_init(ptr++, PIECE_SIZE, swh->piece_count);
+            combined_affine_init(ptr++, PIECE_SIZE, swh->piece_count);
         }
     }
     combined_affine_init(&(swh->se[0]), PIECE_SIZE, swh->piece_count);
     combined_affine_init(&(swh->se[1]), PIECE_SIZE, swh->piece_count);
-    combined_affine_init(&(swh->ee[0]), PIECE_SIZE, swh->piece_count);
-    combined_affine_init(&(swh->ee[1]), PIECE_SIZE, swh->piece_count);
     
     return 0;
 }
@@ -86,8 +84,6 @@ int simon_whitebox_helper_release(simon_whitebox_helper *swh)
     swh->ca = NULL;
     combined_affine_free(&swh->se[0]);
     combined_affine_free(&swh->se[1]);
-    combined_affine_free(&swh->ee[0]);
-    combined_affine_free(&swh->ee[1]);
     return 0;
 }
 
@@ -195,7 +191,7 @@ int _simon_whitebox_content_assemble(simon_whitebox_helper* swh, simon_whitebox_
         }
         // ca_ptr;
         // a_ptr;
-        b_ptr = (ca_ptr+1)->combined_affine;
+        b_ptr = (ca_ptr+i)->combined_affine;
 
         MatGf2Mul( b_ptr->linear_map, shift_list[i], &temp1);
         aff_ptr->linear_map = GenMatGf2Mul( temp1, a_ptr->linear_map);
@@ -243,13 +239,16 @@ int _simon_whitebox_content_assemble(simon_whitebox_helper* swh, simon_whitebox_
 
     // *****************************
     uint8_t * round_key_ptr = swh->key_schedule + 0;
+    // printf("Round 0 key xor: \t");
     piece_t* lut_ptr = swc->lut + 0;
     for (k=0; k<piece_count; k++){
         for (i=0; i<piece_range; i++) {
             uint8_t t8 = ApplyAffineToU8((ca_ptr+2)->sub_affine_inv[k], i) ^ *(round_key_ptr + k);
             lut_ptr[k][i] = ApplyAffineToU8((ca_ptr+3)->sub_affine[k], t8);
         }
+        // printf("%02X:%02X\t", *(round_key_ptr+k), lut_ptr[k][0]);
     }
+    
     // *****************************
 
     int round_id;
@@ -264,7 +263,7 @@ int _simon_whitebox_content_assemble(simon_whitebox_helper* swh, simon_whitebox_
             aff_ptr++;
             // ca_ptr;
             a_ptr = (prev_ca_ptr+3)->combined_affine_inv;
-            b_ptr = (ca_ptr+1)->combined_affine;
+            b_ptr = (ca_ptr+i)->combined_affine;
 
             MatGf2Mul( b_ptr->linear_map, shift_list[i], &temp1);
             aff_ptr->linear_map = GenMatGf2Mul( temp1, a_ptr->linear_map);
@@ -339,12 +338,18 @@ int simon_whitebox_64_content_assemble(simon_whitebox_helper* swh, simon_whitebo
 }
 
 
-
+#include <math/matrix_gf2.h>
 
 int simon_whitebox_64_init(const uint8_t *key, int enc, simon_whitebox_content *swc) 
 {
     simon_whitebox_helper* swh = (simon_whitebox_helper*)malloc(sizeof(simon_whitebox_helper));
     simon_whitebox_64_helper_init(key, swh);
+
+    // uint32_t kf = 0x00800000;
+    // printf("0x%08X\n", kf);
+    // printf("0x%08X\n", ApplyMatToU32(swh->shift8, kf));
+    // printf("0x%08X\n", ApplyMatToU32(swh->shift1, kf));
+    // printf("0x%08X\n", ApplyMatToU32(swh->shift2, kf));
 
     simon_whitebox_64_content_init(swh, swc);
     simon_whitebox_64_content_assemble(swh, swc);

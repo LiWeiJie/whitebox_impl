@@ -28,6 +28,7 @@ typedef struct combined_affine {
 // typedef mzd_t *MatGf2;
 
 int combined_affine_init(CombinedAffine *cm, int sub_matrix_size, int sub_matrix_number);
+int ind_combined_affine_init(CombinedAffine *cm, int sub_matrix_size, int sub_matrix_number);
 
 int combined_affine_free(CombinedAffine *cm);
 

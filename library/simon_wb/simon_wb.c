@@ -8,6 +8,22 @@
 #include <simon_wb/simon_wb.h>
 
 
+#include <stdio.h>
+
+#define SIMON_WB_VERBOSE 0
+
+#define DUMP_VERBOSE(x, n)  if (SIMON_WB_VERBOSE) {print_u8(x, n);}
+
+
+static void print_u8(const uint8_t *out, int len) {
+    int ct = 8;
+    for (int i=0; i<len; i++) {
+        if (i%ct==0) printf("\n");
+        printf("%02X", *(out+i));
+    }
+    printf("\n");
+}
+
 int _simon_wb_64_enc(simon_whitebox_content * swc, const uint8_t *in, uint8_t *out) 
 {
     if (in==NULL || out==NULL)
@@ -23,23 +39,30 @@ int _simon_wb_64_enc(simon_whitebox_content * swc, const uint8_t *in, uint8_t *o
     uint32_t * x_word = ((uint32_t *)out)+1;
     uint32_t * y_word = ((uint32_t *)out)+0;
     
+    
     int i,j;
     for (i=0; i<piece_count; i++) {
-        *(x_byte + i) = swc->SE[i+0][*(in + piece_count)];
-        *(y_byte + i) = swc->SE[i+piece_count][*(in + 0)];
+        *(x_byte + i) = swc->SE[i+0][*(in + piece_count + i)];
+        *(y_byte + i) = swc->SE[i+piece_count][*(in + 0 + i)];
     }
+
+    DUMP_VERBOSE(out, 8);
 
     int round_id = 0;
     int rounds = swc->rounds;
     AffineTransform * aff_ptr;
     aff_ptr = swc->round_aff;
     for (round_id = 0; round_id < rounds; round_id++) {
+        // printf("Round %d:\t", round_id+1);
+
         uint32_t a = ApplyAffineToU32(*(aff_ptr++), *x_word);
         uint8_t* aptr = (uint8_t*)&a;
         uint32_t b = ApplyAffineToU32(*(aff_ptr++), *x_word);
         uint8_t* bptr = (uint8_t*)&b;
         uint32_t c = ApplyAffineToU32(*(aff_ptr++), *x_word);
         uint8_t* cptr = (uint8_t*)&c;
+
+        // printf("%X %X %X %X\n", *x_word, a,b,c);
 
         uint32_t dst;
         uint8_t* desptr = (uint8_t*)&dst;
@@ -51,6 +74,8 @@ int _simon_wb_64_enc(simon_whitebox_content * swc, const uint8_t *in, uint8_t *o
 
         c = ApplyAffineToU32(*(aff_ptr++), *y_word);
         a = dst ^ c;
+        // printf("%X %X", c, a);
+
         aptr = (uint8_t*)&a;
         desptr = (uint8_t*)&dst;
         for (i=0; i<piece_count; i++) {
@@ -60,6 +85,7 @@ int _simon_wb_64_enc(simon_whitebox_content * swc, const uint8_t *in, uint8_t *o
 
         *y_word = *x_word;
         *x_word = dst;
+        DUMP_VERBOSE(out, 8);
     }
 
     for (i=0; i<piece_count; i++) {

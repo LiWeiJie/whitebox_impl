@@ -54,6 +54,7 @@ int gen_gamma_table()
     return 0;
 }
     
+#include <simon/simon.h>
 
 int main(int argc, char **argv) 
 {
@@ -64,14 +65,25 @@ int main(int argc, char **argv)
     ptr = NULL;
     cout << "hello" << endl;
 
-    simon_whitebox_content swc;
-    uint8_t k[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-    simon_whitebox_64_init(k, SIMON_ENCRYPT, &swc);
-    uint8_t in[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    uint8_t k[] = {0xff, 0xff, 0xff, 0xff, 0x2f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+    uint8_t in[] = {0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
     uint8_t out[16] = {0};
-    simon_wb_encrypt(&swc, in, out);
 
+
+    SimSpk_Cipher sc;
+    Simon_Init(&sc, cfg_128_64, ECB, k, NULL, NULL);
+    Simon_Encrypt(sc, in, out);
+    print_u8(in, 8);
+    print_u8(out, 8);
+
+    simon_whitebox_content swc;
+    simon_whitebox_64_init(k, SIMON_ENCRYPT, &swc);
+    print_u8(in, 8);
+    simon_wb_encrypt(&swc, in, out);
+    print_u8(out, 8);
     simon_whitebox_release(&swc);
+
+
     // SWAN_Encrypt_64_main();
     // SWAN_Encrypt_128_main();
     // gen_gamma_table();    
