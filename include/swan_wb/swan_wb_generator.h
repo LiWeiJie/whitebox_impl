@@ -26,9 +26,9 @@ extern "C" {
  */
 int swan_whitebox_64_init(const uint8_t *key, int enc, swan_whitebox_content *swc);
 
-int swan_whitebox_release(swan_whitebox_content *swc);
 
 #ifdef __cplusplus
 }
 #endif
+
 #endif //_SWAN_WHITEBOX_GENERATOR_H_

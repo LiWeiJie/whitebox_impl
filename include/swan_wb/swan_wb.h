@@ -11,22 +11,22 @@ extern "C" {
 #define SWAN_ENCRYPT 1
 #define SWAN_DECRYPT 0
 
-#define _SWAN_PIECE_SIZE 8   //how many bits in a piece
-#if _SWAN_PIECE_SIZE == 8
+#define SWAN_PIECE_BIT 8   //how many bits in a piece
+#if SWAN_PIECE_BIT == 8
 typedef uint8_t swan_wb_unit;
-typedef swan_wb_unit piece_t[1<<_SWAN_PIECE_SIZE];
-#elif _SWAN_PIECE_SIZE == 16
+typedef swan_wb_unit piece_t[1<<SWAN_PIECE_BIT];
+#elif SWAN_PIECE_BIT == 16
 typedef uint16_t swan_wb_unit;
-typedef swan_wb_unit piece_t[1<<_SWAN_PIECE_SIZE];
+typedef swan_wb_unit piece_t[1<<SWAN_PIECE_BIT];
 #endif
 
 enum swan_cipher_config_t {
     swan_cfg_128_64
 } ;
 
-int swan_cfg_rounds[] = {10};
+static int swan_cfg_rounds[] = {10};
 
-int swan_cfg_blocksizes = {64};
+static int swan_cfg_blocksizes[] = {64};
 
 typedef struct swan_wb_t{
     enum swan_cipher_config_t cfg;
@@ -36,7 +36,6 @@ typedef struct swan_wb_t{
     int piece_count;   // piece_count = block_size / 8, every 8 bit combined as a piece
     AffineTransform * round_aff;
     piece_t* lut; // piece_count look up table (combined with round key) needed for every round
-    piece_t** and_table;  
     piece_t* SE; // start encode
     piece_t* EE; // end encode
 } swan_whitebox_content;
@@ -53,15 +52,13 @@ int swan_wb_enc(swan_whitebox_content * swc, const uint8_t *in, uint8_t *out);
 #define swan_wb_encrypt(swan_wb_ctx, in, out) swan_wb_enc(swan_wb_ctx, in, out)
 #define swan_wb_decrypt(swan_wb_ctx, in, out) swan_wb_enc(swan_wb_ctx, in, out)
 
-
 /**
- * @brief free the space of swan_wb_ctx
+ * @brief release the space of swan_whitebox_content
  * 
- * @param swan_wb_ctx 
+ * @param swan_whitebox_content 
  * @return int 0 is successful, otherwise fault
  */
-int swan_wb_free(swan_whitebox_content *swc);
-
+int swan_whitebox_release(swan_whitebox_content *swc);
 
 
 #ifdef __cplusplus
