@@ -16,7 +16,6 @@
 extern "C" {
 #endif
 
-
 /**
  * @brief generate SimonWhitebox instance  
  * 
@@ -26,8 +25,6 @@ extern "C" {
  * @return int 0 is successful, otherwise fault
  */
 int simon_whitebox_64_init(const uint8_t *key, int enc, simon_whitebox_content *swc);
-
-int simon_whitebox_release(simon_whitebox_content *swc);
 
 #ifdef __cplusplus
 }

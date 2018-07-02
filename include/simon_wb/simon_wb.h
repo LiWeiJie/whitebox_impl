@@ -56,13 +56,12 @@ int simon_wb_enc(simon_whitebox_content * swc, const uint8_t *in, uint8_t *out);
 
 
 /**
- * @brief free the space of simon_wb_ctx
+ * @brief release the space of simon_whitebox_content
  * 
- * @param simon_wb_ctx 
+ * @param simon_whitebox_content 
  * @return int 0 is successful, otherwise fault
  */
-int simon_wb_free(simon_whitebox_content *swc);
-
+int simon_whitebox_release(simon_whitebox_content *swc);
 
 #ifdef __cplusplus
 }

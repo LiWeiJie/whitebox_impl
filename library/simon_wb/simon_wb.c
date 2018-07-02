@@ -111,3 +111,33 @@ int simon_wb_enc(simon_whitebox_content * swc, const uint8_t *in, uint8_t *out)
     
     return -1;
 }
+
+
+int simon_whitebox_release(simon_whitebox_content *swc)
+{
+    // TODO:
+    // AffineTransformFree(swc->)
+    int i,j,k;
+    for (i=0; i<swc->rounds * swc->aff_in_round; i++) {
+        AffineTransformFree(swc->round_aff + i);
+    }
+
+    //free memory
+    free(swc->round_aff);
+    free(swc->lut);
+    j = 1<<PIECE_SIZE;
+    for (i=0; i < swc->rounds; i++)
+    {
+        for (k=0; k<swc->piece_count; k++) {
+            free(swc->and_table[i*swc->piece_count + k]);
+        }
+    }
+    free(swc->and_table);
+    free(swc->SE);
+    free(swc->EE);
+    swc->round_aff = NULL;
+    swc->lut = NULL;
+    swc->and_table = NULL;
+    swc->SE = swc->EE = NULL;
+    return 0;
+}
