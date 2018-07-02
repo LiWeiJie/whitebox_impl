@@ -28,12 +28,11 @@ typedef struct swan_whitebox_helper
     uint8_t key_schedule[MAX_RK_SIZE];
 } swan_whitebox_helper;
 
-int _swan_whitebox_helper_init(swan_whitebox_helper *swh, int block_size, int  rounds)
+int _swan_whitebox_helper_init(swan_whitebox_helper *swh)
 {
     swh->shift_in_round = 5;
     swh->aff_in_round = 5;
-    swh->rounds = rounds;
-    swh->block_size = block_size;
+    int block_size = swh->block_size ;
     swh->piece_count = block_size/2/PIECE_SIZE;
     swh->ca = (CombinedAffine *)malloc( swh->rounds * swh->aff_in_round * sizeof(CombinedAffine));
     swh->shift_matrix = (MatGf2*) malloc(swh->shift_in_round * sizeof(MatGf2));
@@ -78,11 +77,21 @@ MatGf2 make_right_rotate_shift(int dim, int r)
     return ind;
 }
 
-int round_key_schedule(const uint8_t* key, uint8_t *rk)
+int round_key_schedule(const uint8_t* key, swan_whitebox_helper *swh)
 {
-    uint8_t * ptr = rk;
-    i = 0;
-
+    uint8_t * ptr = swh->key_schedule;
+    const uint8_t* kp = key;
+    int round = swh->rounds;
+    int i,j;
+    int bs = swh->block_size;
+    int t = bs/16;
+    for (i=0; i< round; i++) {
+        for (j=0; j<t; j++) {
+            *ptr = *kp ^ (uint8_t)i;
+            ptr++;
+            kp++;
+        }
+    }
     return 0;
 }
 
@@ -92,13 +101,16 @@ int swan_whitebox_64_helper_init(const uint8_t *key, swan_whitebox_helper *swh)
     
     // uint8_t rk[MAX_RK_SIZE];
     int ret;
-    ret = round_key_schedule(key, swh->key_schedule);
+    swh->cfg = swan_cfg_128_64;
+    swh->round = swan_cfg_rounds[swh->cfg];
+    swh->block_size = swan_cfg_blocksizes[swh->cfg];
+
+    ret = round_key_schedule(key, swh);
     if (ret != 0) {
         return ret;
     }
-    swh->cfg = swan_cfg_128_64;
     // memcpy(swh->key_schedule, rk, MAX_RK_SIZE);
-    return _swan_whitebox_helper_init(swh, 64, 10);
+    return _swan_whitebox_helper_init(swh);
 }
 
 int swan_whitebox_helper_release(swan_whitebox_helper *swh)
@@ -126,7 +138,7 @@ int swan_whitebox_helper_release(swan_whitebox_helper *swh)
 int _swan_whitebox_content_init(swan_whitebox_helper* swh, swan_whitebox_content* swc) 
 {
     // TODO:
-    swc->aff_in_round = 4;
+    swc->aff_in_round = 7;
     swc->rounds = swh->rounds;
     swc->block_size = swh->block_size;
     swc->piece_count = swh->piece_count;

@@ -21,17 +21,12 @@ typedef swan_wb_unit piece_t[1<<_SWAN_PIECE_SIZE];
 #endif
 
 enum swan_cipher_config_t {
-    swan_cfg_64_32,
-    swan_cfg_72_48,
-    swan_cfg_96_48,
-    swan_cfg_96_64,
-    swan_cfg_128_64,
-    swan_cfg_96_96,
-    swan_cfg_144_96,
-    swan_cfg_128_128,
-    swan_cfg_192_128,
-    swan_cfg_256_128
+    swan_cfg_128_64
 } ;
+
+int swan_cfg_rounds[] = {10};
+
+int swan_cfg_blocksizes = {64};
 
 typedef struct swan_wb_t{
     enum swan_cipher_config_t cfg;

@@ -87,7 +87,6 @@ int simon_whitebox_helper_release(simon_whitebox_helper *swh)
     return 0;
 }
 
-
 int _simon_whitebox_content_init(simon_whitebox_helper* swh, simon_whitebox_content* swc) 
 {
     // TODO:

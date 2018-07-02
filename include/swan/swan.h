@@ -1,8 +1,6 @@
 #ifndef _SWAN_H_
 #define _SWAN_H_
 
-
-
 void SWAN_Encrypt_64(char *plaintext, char *key, char *ciphertext);
 void SWAN_Encrypt_128(char *plaintext, char *key, char *ciphertext);
 
