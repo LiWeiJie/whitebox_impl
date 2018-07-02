@@ -12,12 +12,17 @@ extern "C" {
 #define SWAN_DECRYPT 0
 
 #define SWAN_PIECE_BIT 8   //how many bits in a piece
+
 #if SWAN_PIECE_BIT == 8
+
 typedef uint8_t swan_wb_unit;
 typedef swan_wb_unit piece_t[1<<SWAN_PIECE_BIT];
+
 #elif SWAN_PIECE_BIT == 16
+
 typedef uint16_t swan_wb_unit;
 typedef swan_wb_unit piece_t[1<<SWAN_PIECE_BIT];
+
 #endif
 
 enum swan_cipher_config_t {
