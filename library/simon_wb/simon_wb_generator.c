@@ -2,7 +2,7 @@
  * @Author: Weijie Li 
  * @Date: 2018-06-23 16:51:34
  * @Last Modified by: Weijie Li
- * @Last Modified time: 2018-06-27 14:45:27
+ * @Last Modified time: 2018-07-03 00:44:17
  */
 
 #include <simon_wb/simon_wb_generator.h>
@@ -130,14 +130,14 @@ int _simon_whitebox_content_assemble(simon_whitebox_helper* swh, simon_whitebox_
     int i,j,k;
     int piece_range = 1<<PIECE_SIZE;
 
-    CombinedAffine * last_round_ca_ptr = swh->ca + (swc->rounds-1) * swc->aff_in_round;
+    CombinedAffine * last_round_ca_ptr = swh->ca + (swh->rounds-1) * swh->aff_in_round;
     for (i=0; i < piece_count; i++) {
         for (j=0; j<piece_range; j++) {
             swc->SE[i][j] = ApplyAffineToU8(swh->se[0].sub_affine[i], j);
             swc->EE[i][j] = ApplyAffineToU8((last_round_ca_ptr + 3)->sub_affine_inv[i], j);
         }
     }
-    last_round_ca_ptr -= swc->aff_in_round;
+    last_round_ca_ptr -= swh->aff_in_round;
     for (i=0; i < piece_count; i++) {
         for (j=0; j<piece_range; j++) {
             swc->SE[piece_count + i][j] = ApplyAffineToU8(swh->se[1].sub_affine[i], j);
