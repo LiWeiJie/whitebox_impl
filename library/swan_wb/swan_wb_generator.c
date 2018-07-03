@@ -104,7 +104,7 @@ static MatGf2 make_special_transposition(int dim)
 
 int _swan_whitebox_helper_init(swan_whitebox_helper *swh)
 {
-    swh->shift_in_round = 5;
+    swh->shift_in_round = 4;
     swh->aff_in_round = 5;
     int block_size = swh->block_size ;
     int semi_block = block_size/2;
@@ -192,6 +192,7 @@ int swan_whitebox_helper_release(swan_whitebox_helper *swh)
 
     MatGf2Free(swh->special_transposition);
     MatGf2Free(swh->special_transposition_inv);
+    swh->special_transposition = swh->special_transposition_inv = NULL;
     return 0;
 }
 
@@ -231,21 +232,23 @@ int _swan_whitebox_content_assemble(swan_whitebox_helper* swh, swan_whitebox_con
     int i,j,k;
     int piece_range = 1<<SWAN_PIECE_BIT;
 
-    CombinedAffine * last_round_ca_ptr = swh->ca + (swh->rounds-1) * swh->aff_in_round;
+    CombinedAffine * last_round_ca_ptr = swh->ca + (swh->rounds-1) * swh->aff_in_round + 4;
     for (i=0; i < piece_count; i++) {
         for (j=0; j<piece_range; j++) {
             swc->SE[i][j] = ApplyAffineToU8(swh->se[0].sub_affine[i], j);
-            swc->EE[i][j] = ApplyAffineToU8((last_round_ca_ptr + 4)->sub_affine_inv[i], j);
+            swc->EE[i][j] = ApplyAffineToU8((last_round_ca_ptr)->sub_affine_inv[i], j);
         }
     }
 
-
-
-    last_round_ca_ptr -= swh->aff_in_round;
+    if (swh->rounds>1) {
+        last_round_ca_ptr -= swh->aff_in_round;
+    } else {
+        last_round_ca_ptr = &swh->se[0];
+    }
     for (i=0; i < piece_count; i++) {
         for (j=0; j<piece_range; j++) {
             swc->SE[piece_count + i][j] = ApplyAffineToU8(swh->se[1].sub_affine[i], j);
-            swc->EE[piece_count + i][j] = ApplyAffineToU8((last_round_ca_ptr + 4)->sub_affine_inv[i], j);
+            swc->EE[piece_count + i][j] = ApplyAffineToU8((last_round_ca_ptr)->sub_affine_inv[i], j);
         }
     }
 
@@ -482,7 +485,7 @@ int swan_whitebox_64_init(const uint8_t *key, int enc, swan_whitebox_content *sw
 
     
     
-    // swan_whitebox_helper_release(swh);
+    swan_whitebox_helper_release(swh);
     free(swh);
     swh = NULL;
 
