@@ -29,7 +29,7 @@ enum swan_cipher_config_t {
     swan_cfg_128_64
 } ;
 
-static int swan_cfg_rounds[] = {10};
+static int swan_cfg_rounds[] = {1};
 
 static int swan_cfg_blocksizes[] = {64};
 
