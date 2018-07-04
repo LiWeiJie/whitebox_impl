@@ -2,7 +2,7 @@
  * @Author: Weijie Li 
  * @Date: 2017-11-27 16:44:54 
  * @Last Modified by: Weijie Li
- * @Last Modified time: 2018-06-27 21:41:55
+ * @Last Modified time: 2018-07-04 11:35:57
  */
 
 #include <math/affine_transform.h>
@@ -96,9 +96,11 @@ void * ExportAffineToStr(const AffineTransform* aff) {
     sz ++;
     szb = szb * (*sz);
 
-    void * result = malloc(4*sizeof(uint32_t) + sza + szb);
-    memcpy(result, a, sza + 2*sizeof(uint32_t));
-    memcpy(result + sza*sizeof(char) + 2*sizeof(uint32_t),  b,  szb+ 2*sizeof(uint32_t));
+    void * result = malloc(5*sizeof(uint32_t) + sza + szb);
+    uint32_t * u32ptr = (uint32_t*)result;
+    *u32ptr = 5*sizeof(uint32_t) + sza + szb;
+    memcpy(result + sizeof(uint32_t), a, sza*sizeof(char) + 2*sizeof(uint32_t));
+    memcpy(result + sizeof(uint32_t) + sza*sizeof(char) + 2*sizeof(uint32_t),  b,  szb*sizeof(char) + 2*sizeof(uint32_t));
 
     free(a);
     free(b);
@@ -107,6 +109,7 @@ void * ExportAffineToStr(const AffineTransform* aff) {
 }
 
 AffineTransform ImportAffineFromStr(const void *source) {
+    source += sizeof(uint32_t);
     AffineTransform result;
     result.linear_map = ImportMatGf2FromStr(source);
 
