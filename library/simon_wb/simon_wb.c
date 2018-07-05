@@ -141,3 +141,111 @@ int simon_whitebox_release(simon_whitebox_content *swc)
     swc->SE = swc->EE = NULL;
     return 0;
 }
+
+int simon_wb_export_to_bytes(const simon_whitebox_content* swc, uint8_t **dest)  
+{
+    if (*dest!=NULL) 
+        return -1;
+    int sz = 0;
+    sz = sizeof(simon_whitebox_content);
+    // sz += swc->rounds * swc->aff_in_round * sizeof(AffineTransform);    //round_aff
+    sz += swc->rounds  * swc->piece_count * sizeof(piece_t);    //LUT
+    sz += 2 * swc->piece_count * sizeof(piece_t);    //SE
+    sz += 2 * swc->piece_count * sizeof(piece_t);    //EE
+    int t = 1 << swc->piece_size;
+    sz += swc->rounds * swc->piece_count * t * sizeof(piece_t);    //and table 
+
+    void** ptr_list = malloc(swc->rounds * swc->aff_in_round * sizeof(void*));
+
+    int i;
+    for (i=0; i<swc->rounds * swc->aff_in_round; i++) {
+        ptr_list[i] = ExportAffineToStr(swc->round_aff + i);
+        sz += *(uint32_t*)ptr_list[i];
+    }
+
+    *dest = malloc(sz);
+    *((uint32_t*)*dest)=sz;
+
+    uint8_t * ds = *dest + sizeof(uint32_t);
+    memcpy(ds, swc, sizeof(simon_whitebox_content));
+    ds += sizeof(simon_whitebox_content);
+    int k;
+
+    k = swc->rounds  * swc->piece_count * sizeof(piece_t);
+    memcpy(ds, swc->lut, k);
+    ds += k;
+
+    k = 2 * swc->piece_count * sizeof(piece_t);
+    memcpy(ds, swc->SE, k);
+    ds += k;
+
+    k = 2 * swc->piece_count * sizeof(piece_t);
+    memcpy(ds, swc->EE, k);
+    ds += k;
+    
+    for (i=0; i<swc->rounds * swc->aff_in_round; i++) {
+        k = *(uint32_t*)ptr_list[i];
+        memcpy(ds, ptr_list[i], k);
+        ds += k;
+    }
+
+    int j;
+    for (i=0; i < swc->rounds; i++) {
+        for (j=0; j<swc->piece_count; j++) {
+            k = t * sizeof(piece_t);
+            memcpy(ds, swc->and_table[i*swc->piece_count + j], k);
+            ds += k;
+        }
+    }
+
+    return sz;   
+}
+
+int  simon_wb_import_from_bytes(const uint8_t *source, simon_whitebox_content* swc) 
+{
+
+    const void * ptr = source;
+    ptr += sizeof(uint32_t);
+    
+    memcpy(swc, ptr, sizeof(simon_whitebox_content));
+    ptr += sizeof(simon_whitebox_content);
+
+    int k;
+    k = swc->rounds  * swc->piece_count * sizeof(piece_t);
+    swc->lut = (piece_t*)malloc(k);
+    memcpy(swc->lut, ptr, k);
+    ptr += k;
+
+    k = 2 * swc->piece_count * sizeof(piece_t);
+    swc->SE = (piece_t*)malloc(k);
+    memcpy(swc->SE, ptr, k);
+    ptr += k;
+
+    k = 2 * swc->piece_count * sizeof(piece_t);
+    swc->EE = (piece_t*)malloc(k);
+    memcpy(swc->EE, ptr, k);
+    ptr += k;
+
+    k = swc->rounds * swc->aff_in_round  * sizeof(AffineTransform);
+    swc->round_aff = (AffineTransform *)malloc(k);
+    int i;
+    for (i=0; i<swc->rounds * swc->aff_in_round; i++) {
+        uint32_t aff_sz = *((uint32_t*)ptr);
+        *(swc->round_aff + i) = ImportAffineFromStr(ptr);
+        ptr += aff_sz;
+    }
+
+    int j;
+    swc->and_table = (piece_t**)malloc(swc->rounds * swc->piece_count * sizeof(piece_t*));
+    int t = 1<<swc->piece_size;
+    for (i=0; i < swc->rounds; i++) {
+        for (j=0; j<swc->piece_count; j++) {
+            k = t * sizeof(piece_t);
+            swc->and_table[i*swc->piece_count + j] = (piece_t*)malloc(k);
+            memcpy(swc->and_table[i*swc->piece_count + j], ptr, k);
+            ptr += k;
+        }
+    }
+
+    return 0;
+}

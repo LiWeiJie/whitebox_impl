@@ -31,6 +31,7 @@ typedef simon_wb_unit piece_t[1<<PIECE_SIZE];
 
 typedef struct simon_wb_t{
     enum cipher_config_t cfg;
+    int piece_size;
     uint32_t rounds;
     int aff_in_round;
     int block_size;
@@ -54,6 +55,22 @@ int simon_wb_enc(simon_whitebox_content * swc, const uint8_t *in, uint8_t *out);
 #define simon_wb_encrypt(simon_wb_ctx, in, out) simon_wb_enc(simon_wb_ctx, in, out)
 #define simon_wb_decrypt(simon_wb_ctx, in, out) simon_wb_enc(simon_wb_ctx, in, out)
 
+/**
+ * @brief export simon_whitebox_content to byte
+ * 
+ * @param ctx a pointer of simon_whitebox_content
+ * @param dest a pointer to a pointer of byte[], warning: must be free outside, must be NULL
+ * @return int byte[] size
+ */
+int simon_wb_export_to_bytes(const simon_whitebox_content* swc, uint8_t **dest) ;
+
+/**
+ * @brief import simon_whitebox_content from str
+ * 
+ * @param source 
+ * @return simon_whitebox_content * 
+ */
+int  simon_wb_import_from_bytes(const uint8_t *source, simon_whitebox_content* swc);
 
 /**
  * @brief release the space of simon_whitebox_content

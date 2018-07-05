@@ -90,6 +90,7 @@ int simon_whitebox_helper_release(simon_whitebox_helper *swh)
 int _simon_whitebox_content_init(simon_whitebox_helper* swh, simon_whitebox_content* swc) 
 {
     // TODO:
+    swc->piece_size = PIECE_SIZE;
     swc->aff_in_round = 4;
     swc->rounds = swh->rounds;
     swc->block_size = swh->block_size;
@@ -99,8 +100,7 @@ int _simon_whitebox_content_init(simon_whitebox_helper* swh, simon_whitebox_cont
     swc->and_table = (piece_t**)malloc(swc->rounds * swc->piece_count * sizeof(piece_t*));
     int i,j,k;
     j = 1<<PIECE_SIZE;
-    for (i=0; i < swc->rounds; i++)
-    {
+    for (i=0; i < swc->rounds; i++) {
         for (k=0; k<swc->piece_count; k++) {
             swc->and_table[i*swc->piece_count + k] = (piece_t*)malloc(j * sizeof(piece_t));
         }
