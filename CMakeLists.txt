@@ -7,6 +7,8 @@ PROJECT(whitebox_impl)
 
 #3.head file path，头文件目录
 INCLUDE_DIRECTORIES(include)
+INCLUDE_DIRECTORIES(test)
+
 
 #4.source directory，源文件目录
 AUX_SOURCE_DIRECTORY(library LIB_SRCS)
@@ -54,7 +56,7 @@ AUX_SOURCE_DIRECTORY(library/swan_wb LIB_SRCS)
 # AUX_SOURCE_DIRECTORY(test TEST_EXEC)
 # 
 AUX_SOURCE_DIRECTORY(. TEST_EXEC)
-
+AUX_SOURCE_DIRECTORY(test TEST_EXEC)
 
 # set name for build
 SET(BUILD_NAME ${PROJECT_NAME})

@@ -69,7 +69,7 @@ __u32 R2(__u32 x)
 
 void SWAN_Encrypt_64(char *plaintext, char *key, char *ciphertext)
 {
-    printf("gamma 0:%08X\n", Gamma(0xFFFFFFFF));
+    // printf("gamma 0:%08X\n", Gamma(0xFFFFFFFF));
     __u32 L = *((__u32*) plaintext);
     __u32 R = *((__u32*) (plaintext+HALFTEXT));
     __u32 key1 = *((__u32*) key);

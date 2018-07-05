@@ -78,9 +78,9 @@ static void make_double_s()
     for (i=0; i<256; i++) {
         if (i%16==0) printf("\n");
         double_S[i] = S[i>>4]<<4 | S[i&0x0f];
-        printf("0x%02X, ", double_S[i]);
+        // printf("0x%02X, ", double_S[i]);
     }
-    printf("\n");
+    // printf("\n");
 }
 
 static MatGf2 make_rotate_shift(int dim, int r)
