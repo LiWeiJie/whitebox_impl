@@ -36,9 +36,9 @@ static int swan_cfg_blocksizes[] = {64};
 typedef struct swan_wb_t{
     enum swan_cipher_config_t cfg;
     uint32_t rounds;
-    int aff_in_round;
-    int block_size;
-    int piece_count;   // piece_count = block_size / 8, every 8 bit combined as a piece
+    uint32_t aff_in_round;
+    uint32_t block_size;
+    uint32_t piece_count;   // piece_count = block_size / 8, every 8 bit combined as a piece
     AffineTransform * round_aff;
     piece_t* lut; // piece_count look up table (combined with round key) needed for every round
     piece_t* SE; // start encode
@@ -56,6 +56,23 @@ int swan_wb_enc(swan_whitebox_content * swc, const uint8_t *in, uint8_t *out);
 
 #define swan_wb_encrypt(swan_wb_ctx, in, out) swan_wb_enc(swan_wb_ctx, in, out)
 #define swan_wb_decrypt(swan_wb_ctx, in, out) swan_wb_enc(swan_wb_ctx, in, out)
+
+/**
+ * @brief export swan_whitebox_content to byte
+ * 
+ * @param ctx a pointer of swan_whitebox_content
+ * @param dest a pointer to a pointer of byte[], warning: must be free outside, must be NULL
+ * @return int byte[] size
+ */
+int swan_wb_export_to_bytes(const swan_whitebox_content* ctx, uint8_t **dest) ;
+
+/**
+ * @brief import Swan Whitebox from str
+ * 
+ * @param source 
+ * @return swan_whitebox_content * 
+ */
+int  swan_wb_import_from_bytes(const uint8_t *source, swan_whitebox_content* swc);
 
 /**
  * @brief release the space of swan_whitebox_content
