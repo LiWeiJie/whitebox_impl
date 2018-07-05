@@ -30,8 +30,8 @@ int main(int argc, char **argv)
     ptr = NULL;
     cout << "hello" << endl;
 
-    uint8_t k[] = {0xff, 0xff, 0xff, 0xff, 0x2f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-    uint8_t in[] = {0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    uint8_t k[] = {0xff, 0xff, 0xff, 0xff, 0x0f, 0xff, 0xff, 0xff};
+    uint8_t in[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
     uint8_t out[16] = {0};
 
     start = clock();
@@ -66,9 +66,30 @@ int main(int argc, char **argv)
 
     end = clock();
     dur = (double)(end - start);
-    printf("Whitebox Enc Use Time:%f s\n",(dur/CLOCKS_PER_SEC));
 
     print_u8(out, 8);
+    printf("Whitebox Enc Use Time:%f s\n",(dur/CLOCKS_PER_SEC));
+
+
+    swan_whitebox_content swct;
+    uint8_t * swct_ptr = NULL;
+
+    swan_wb_export_to_bytes(&swc, &swct_ptr);
+
+    swan_wb_import_from_bytes(swct_ptr, &swct);
+
+    start = clock();
+
+    swan_wb_encrypt(&swct, in, out);
+
+    end = clock();
+    dur = (double)(end - start);
+
+    print_u8(out, 8);
+    printf("Whitebox copy Enc Use Time:%f s\n",(dur/CLOCKS_PER_SEC));
+
+    swan_whitebox_release(&swct);
+
     swan_whitebox_release(&swc);
 
     return 0;
