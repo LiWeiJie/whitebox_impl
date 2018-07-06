@@ -25,11 +25,14 @@ int swan_bench_test(int times)
     uint8_t k[] = {0xff, 0xff, 0xff, 0xff, 0x0f, 0xff, 0xff, 0xff};
     uint8_t in[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
     uint8_t out[16] = {0};
+    int i;
 
     set_time_start();
 
     // SWAN_Encrypt_64_main();
-    SWAN_Encrypt_64( (char *)in, (char *)k, (char *)out);
+    for (i=0; i<times; i++) {
+        SWAN_Encrypt_64( (char *)in, (char *)k, (char *)out);
+    }
 
     set_time_ends();
 
@@ -51,8 +54,9 @@ int swan_bench_test(int times)
     print_u8(in, 8);
 
     set_time_start();
-
-    swan_wb_encrypt(&swc, in, out);
+    for (i=0; i<times; i++) {
+        swan_wb_encrypt(&swc, in, out);
+    }
 
     set_time_ends();
 
@@ -70,9 +74,9 @@ int swan_bench_test(int times)
     swan_wb_import_from_bytes(swct_ptr, &swct);
 
     set_time_start();
-
-    swan_wb_encrypt(&swct, in, out);
-
+    for (i=0; i<times; i++) {
+        swan_wb_encrypt(&swct, in, out);
+    }
     set_time_ends();
 
     print_u8(out, 8);

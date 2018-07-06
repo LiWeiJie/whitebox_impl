@@ -19,9 +19,14 @@ static void print_u8(uint8_t *out, int len) {
 
 int main(int argc, char **argv) 
 {
-    int test_times = 1;
-    swan_bench_test(test_times);
-    printf("\n");
-    simon_bench_test(test_times);
+    for (int i=0; i<3; i++) {
+        int test_times = 1000000;
+        swan_bench_test(test_times);
+        printf("\n");
+        simon_bench_test(test_times);
+        printf("\n");
+        printf("---------------------------\n");
+    }
+    
     return 0;
 }

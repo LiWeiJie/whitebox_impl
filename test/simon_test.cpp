@@ -21,12 +21,11 @@ int simon_bench_test(int times)
 {
     printf("[simon bench test]\n");
     printf("test times: %d\n", times);
-    double dur;
-    clock_t start,end;
 
     uint8_t k[] = {0xff, 0xf0, 0xff, 0xff, 0x2f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
     uint8_t in[] = {0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
     uint8_t out[16] = {0};
+    int i;
 
 
     SimSpk_Cipher sc;
@@ -34,8 +33,9 @@ int simon_bench_test(int times)
     set_time_start();
 
     Simon_Init(&sc, cfg_128_64, ECB, k, NULL, NULL);
-    Simon_Encrypt(sc, in, out);
-
+    for (i=0; i<times; i++) {
+        Simon_Encrypt(sc, in, out);
+    }
     set_time_ends();
 
     print_u8(in, 8);
@@ -53,13 +53,12 @@ int simon_bench_test(int times)
 
     printf("Generate Whitebox Use Time: %f s, %lld cycles\n", get_clock_elapsed(), get_cycles_elapsed());
 
-
     print_u8(in, 8);
 
     set_time_start();
-
-    simon_wb_encrypt(&swc, in, out);
-
+    for (i=0; i<times; i++) {
+        simon_wb_encrypt(&swc, in, out);
+    }
     set_time_ends();
 
     print_u8(out, 8);
@@ -75,9 +74,9 @@ int simon_bench_test(int times)
     simon_wb_import_from_bytes(swct_ptr, &swct);
 
     set_time_start();
-
-    simon_wb_encrypt(&swct, in, out);
-
+    for (i=0; i<times; i++) {
+        simon_wb_encrypt(&swct, in, out);
+    }
     set_time_ends();
 
 

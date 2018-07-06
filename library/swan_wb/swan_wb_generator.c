@@ -335,9 +335,9 @@ int _swan_whitebox_content_assemble(swan_whitebox_helper* swh, swan_whitebox_con
             t8 = double_S[t8];
             lut_ptr[k][i] = ApplyAffineToU8((ca_ptr+3)->sub_affine[k], t8);
         }
-        printf("%02X:%02X\t", *(round_key_ptr+k), lut_ptr[k][0]);
+        // printf("%02X:%02X\t", *(round_key_ptr+k), lut_ptr[k][0]);
     }
-    printf("\n");
+    // printf("\n");
 
     // *****************************
     //   B * T * (A * x + a) + b = (B * T * A) * x +( B * T * a) + b
