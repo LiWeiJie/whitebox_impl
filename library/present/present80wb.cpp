@@ -244,6 +244,7 @@ void present_wb_init(const uint8_t *key, present_wb_ctx &ctx) {
 
 }
 
+// TODO:
 void present_wb_release(present_wb_ctx ctx) {}
 
 // full-round should be 31, i.e. rounds = 31
