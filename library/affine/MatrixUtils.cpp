@@ -165,24 +165,38 @@ int getAugmentedVecFrom32(NTL::vec_GF2 &d, uint32_t s) {
 int combineDiagMat(NTL::mat_GF2 &d, NTL::mat_GF2 &s1, NTL::mat_GF2 &s2) {
 	long n1 = s1.NumCols();
 	long n2 = s2.NumCols();
-	d.SetDims(n1+n2, n1+n2);
+	NTL::mat_GF2 tmp;
+	tmp.SetDims(n1+n2, n1+n2);
 	int i,j;
 	for (i=0; i<n1; i++) {
 		for (j=0; j<n1; j++) {
-			d.put(i, j, s1.get(i,j));
+			tmp.put(i, j, s1.get(i,j));
 		}
 		for (j=0; j<n2; j++) {
-			d.put(i, n1+j, 0);
+			tmp.put(i, n1+j, 0);
 		}
 	}
 	for (i=0; i<n2; i++) {
 		for (j=0; j<n1; j++) {
-			d.put(n1+i, j, 0);
+			tmp.put(n1+i, j, 0);
 		}
 		for (j=0; j<n2; j++) {
-			d.put(n1+i, n1+j, s2.get(i,j));
+			tmp.put(n1+i, n1+j, s2.get(i,j));
 		}
 	}
+	d = tmp;
+	return 0;
+}
+
+int combineVec(NTL::vec_GF2 &d, NTL::vec_GF2 &s1, NTL::vec_GF2 &s2) {
+	d = s1;
+	d.append(s2);
+	return 0;
+}
+
+int combineDiagAffine(affine_transform_t &t, affine_transform_t &a, affine_transform_t &b) {
+	combineDiagMat(t.linearMap, a.linearMap, b.linearMap);
+	combineVec(t.vectorTranslation, a.vectorTranslation, b.vectorTranslation);
 	return 0;
 }
 

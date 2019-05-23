@@ -22,8 +22,6 @@ int initMatrixFromBit(NTL::mat_GF2 &X, long *data);
 
 int initVecFromBit(NTL::vec_GF2 &M, long data, int len);
 
-
-
 /**
  * return a (n+1)*(n+1) matrix, contained the translation and linear map
  * and its inv
@@ -68,6 +66,11 @@ int getAugmentedVecFrom32(NTL::vec_GF2 &d, uint32_t s);
  * 
  * */
 int combineDiagMat(NTL::mat_GF2 &d, NTL::mat_GF2 &s1, NTL::mat_GF2 &s2);
+
+int combineVec(NTL::vec_GF2 &d, NTL::vec_GF2 &s1, NTL::vec_GF2 &s2);
+
+
+int combineDiagAffine(affine_transform_t &t, affine_transform_t &a, affine_transform_t &b);
 
 uint32_t applyAffineToU32(const affine_transform_t &aff, uint32_t data);
 uint8_t applyAffineToU8(const affine_transform_t &aff, uint8_t data);

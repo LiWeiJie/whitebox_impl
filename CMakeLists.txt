@@ -27,7 +27,9 @@ SET(LIB_SRCS ${LIB_SRCS} library/affine/MatrixUtils.cpp )
 AUX_SOURCE_DIRECTORY(library/klein LIB_SRCS)
 
 #LBlock
-AUX_SOURCE_DIRECTORY(library/LBlock LIB_SRCS)
+SET(LIB_SRCS ${LIB_SRCS} library/LBlock/LBlock80wb-new.cpp)
+# SET(LIB_SRCS ${LIB_SRCS} library/LBlock/LBlock80wb.cpp)
+# AUX_SOURCE_DIRECTORY(library/LBlock LIB_SRCS)
 
 #present
 SET(LIB_SRCS

@@ -30,18 +30,18 @@ int sm4_test_main();
 int main(int argc, char **argv) 
 {
     
-    printf("-------------klein test-------------\n");
-    klein_test_main();
+    // printf("-------------klein test-------------\n");
+    // klein_test_main();
 
 
     printf("-------------LBlock test-------------\n");
     lblock_test_main();
 
-    printf("-------------present80 test-------------\n");
-    present80_test_main();
+    // printf("-------------present80 test-------------\n");
+    // present80_test_main();
 
-    printf("-------------sm4 test-------------\n");
-    sm4_test_main();
+    // printf("-------------sm4 test-------------\n");
+    // sm4_test_main();
 
     return 0;
 }

@@ -1,6 +1,6 @@
 /*
  * @Author: Weijie Li 
- * @Date: 2018-01-25 16:12:15 
+ * @Date: 2019-05-18 11:10:52
  * @Last Modified by: Weijie Li
  * @Last Modified time: 2018-01-26 17:40:57
  */
@@ -15,6 +15,8 @@
 typedef struct LBlock80wb_assistant {
 	uint8_t f[LBLOCK80_ROUNDS+3][8][16];
 	uint8_t fi[LBLOCK80_ROUNDS+3][8][16];
+	affine_transform_t aff[LBLOCK80_ROUNDS+3];
+	affine_transform_t aff_inv[LBLOCK80_ROUNDS+3];
 }LBlock80wb_assistant;
 
 int embedded_sbox_key(LBlock80wb_ctx *ctx, const uint8_t *key) {
@@ -77,18 +79,44 @@ int gen_bijections_table(LBlock80wb_ctx *ctx, LBlock80wb_assistant *assistant) {
 	int i,j,k;
 	int rounds = ctx->rounds;
 	NTL::mat_GF2 X,Y;
+	affine_transform_t ax, ay;
+	NTL::mat_GF2 inv;
 	for (i=0; i<rounds+3; i++) {
+		// genIndMatrix( assistant->aff[i].linearMap, 4);
+		// genZeroVec( assistant->aff[i].vectorTranslation, 4);
 		for (k=0; k<8; k++) {
-			genRandomInvMatrix(X, Y, 4);
+			// genRandomInvMatrix(X, Y, 4);
+			if (i<3)
+                genRandomAffineMatrix(ax.linearMap,  inv, ax.vectorTranslation, 4);
+			else {
+                genIndMatrix(ax.linearMap, 4);
+                genZeroVec(ax.vectorTranslation, 4);
+            }
+			if (k!=0) {
+				combineDiagAffine(assistant->aff[i], assistant->aff[i], ax);
+				assistant->aff[i].vectorTranslation.append(ax.vectorTranslation);
+			} else {
+				assistant->aff[i].linearMap = ax.linearMap;
+				assistant->aff[i].vectorTranslation = ax.vectorTranslation;
+			}
 			for (j=0; j<16; j++) {
 				NTL::vec_GF2 tv;
 				initVecFromBit(tv, j, 4);
-				tv = X*tv;
+				tv = ax.linearMap*tv;
 				int t = getDigitalFromVec(tv);
 				assistant->f[i][k][j] = t;
 				assistant->fi[i][k][t] = j;
 			}
 		}
+		// uint32_t vec = getDigitalFromVec(assistant->aff[i].vectorTranslation);
+		// for (j=0; j<16; j++) {
+		// 	NTL::vec_GF2 tv;
+		// 	initVecFromBit(tv, j, 4);
+		// 	tv = ax.linearMap*tv;
+		// 	int t = getDigitalFromVec(tv);
+		// 	assistant->f[i][k][j] = t;
+		// 	assistant->fi[i][k][t] = j;
+		// }
 	}
 	for (k=0; k<8; k++) {
 		for (j=0; j<16; j++) {
@@ -113,28 +141,36 @@ int gen_bijections_table(LBlock80wb_ctx *ctx, LBlock80wb_assistant *assistant) {
 }
 
 int apply_bijections_table(LBlock80wb_ctx *ctx, LBlock80wb_assistant *assistant) {
-	int i,d;
+	int i,d,j;
 	int rounds = ctx->rounds;
 	for (i=0; i<rounds; i++) {
-		uint8_t Te_T[8][16];
+		uint32_t Te_T[8][16];
+		// uint32_t vec = getDigitalFromVec(assistant->aff[i].vectorTranslation);
 		for (d=0; d<16; d++) { 
 			Te_T[0][d] = 	assistant->fi[i+2][2][ \
-									ctx->Te[i][0][assistant->f[i+1][0][d]]] ;
+									ctx->Te[i][0][assistant->f[i+1][0][d]]]; 
+			Te_T[0][d] <<= (4*2) ;
 			Te_T[1][d] = 	assistant->fi[i+2][0][ \
-									ctx->Te[i][1][assistant->f[i+1][1][d]]] ;
+									ctx->Te[i][1][assistant->f[i+1][1][d]]]; 
+			Te_T[1][d] <<= (4*0) ;
 			Te_T[2][d] = 	assistant->fi[i+2][3][ \
-									ctx->Te[i][2][assistant->f[i+1][2][d]]] ;
+									ctx->Te[i][2][assistant->f[i+1][2][d]]]; 
+			Te_T[2][d] <<= (4*3) ;
 			Te_T[3][d] = 	assistant->fi[i+2][1][ \
-									ctx->Te[i][3][assistant->f[i+1][3][d]]] ;
+									ctx->Te[i][3][assistant->f[i+1][3][d]]]; 
+			Te_T[3][d] <<= (4*1) ;
 			Te_T[4][d] = 	assistant->fi[i+2][6][ \
-									ctx->Te[i][4][assistant->f[i+1][4][d]]] ;
+									ctx->Te[i][4][assistant->f[i+1][4][d]]]; 
+			Te_T[4][d] <<= (4*6) ;
 			Te_T[5][d] = 	assistant->fi[i+2][4][ \
-									ctx->Te[i][5][assistant->f[i+1][5][d]]] ;
+									ctx->Te[i][5][assistant->f[i+1][5][d]]]; 
+			Te_T[5][d] <<= (4*4) ;
 			Te_T[6][d] = 	assistant->fi[i+2][7][ \
-									ctx->Te[i][6][assistant->f[i+1][6][d]]] ;
+									ctx->Te[i][6][assistant->f[i+1][6][d]]]; 
+			Te_T[6][d] <<= (4*7) ;
 			Te_T[7][d] = 	assistant->fi[i+2][5][ \
-									ctx->Te[i][7][assistant->f[i+1][7][d]]] ;
-								
+									ctx->Te[i][7][assistant->f[i+1][7][d]]]; 
+			Te_T[7][d] <<= (4*5) ;
 		}
 		for (d=0; d<16; d++) {
 			ctx->Te[i][0][d] = Te_T[0][d];
@@ -162,6 +198,10 @@ int apply_bijections_table(LBlock80wb_ctx *ctx, LBlock80wb_assistant *assistant)
 									assistant->f [i   ][4][d]];
 			ctx->remap[i][7][d] = 	assistant->fi[i+2][7][ \
 									assistant->f [i   ][5][d]];
+
+			for (j=0; j<8; j++) {
+				ctx->remap[i][j][d] = (ctx->remap[i][j][d] << (((j)%8)*4));
+			}
 		}
 
 	}
@@ -194,6 +234,8 @@ void LBlock80wb_encrypte_algorithm(const uint8_t *plain, const LBlock80wb_ctx *c
 	uint8_t *stateL = state + 8;
 	uint8_t *tempPiont;
 	uint8_t i;
+	uint64_t *l64, * r64;
+	int j;
 
 	stateR[0] = plain[0]; stateR[1] = plain[1];
 	stateR[2] = plain[2]; stateR[3] = plain[3];
@@ -212,13 +254,13 @@ void LBlock80wb_encrypte_algorithm(const uint8_t *plain, const LBlock80wb_ctx *c
 	}
        
 #if LBLOCK_WB_DEBUG
-	int j;
 	printf("Round 0:\t");
 	for(j=7; j>=0; j--) printf("%x ", ctx->restore[1][j][stateL[j]]);
 	for(j=7; j>=0; j--) printf("%x ", ctx->restore[0][j][stateR[j]]);
 	printf("\n");
 #endif //LBLOCK_WB_DEBUG
 	
+
 
 	for(i=0; i < ctx->rounds; i++)
 	{
@@ -228,35 +270,52 @@ void LBlock80wb_encrypte_algorithm(const uint8_t *plain, const LBlock80wb_ctx *c
 		#if LBLOCK_WB_DEBUG
 			printf("Round %d:\t\n", i);
 			printf("Left:\t");
-			printf("%X%X%X%X%X%X%X%X\n",  \
-			 														ctx->restore[i+2][7][ctx->Te[i][6][stateL[6]]], \
-																	ctx->restore[i+2][6][ctx->Te[i][4][stateL[4]]], \
-																	ctx->restore[i+2][5][ctx->Te[i][7][stateL[7]]], \
-																	ctx->restore[i+2][4][ctx->Te[i][5][stateL[5]]], \
-																	ctx->restore[i+2][3][ctx->Te[i][2][stateL[2]]], \
-																	ctx->restore[i+2][2][ctx->Te[i][0][stateL[0]]], \
-																	ctx->restore[i+2][1][ctx->Te[i][3][stateL[3]]], \
-																	ctx->restore[i+2][0][ctx->Te[i][1][stateL[1]]] );
+        printf("%X%X%X%X%X%X%X%X\n",  \
+			 														stateL[7], \
+																	stateL[6], \
+																	stateL[5], \
+																	stateL[4], \
+																	stateL[3], \
+																	stateL[2], \
+																	stateL[1], \
+																	stateL[0] );
 			printf("Right:\t");
 			printf("%X%X%X%X%X%X%X%X\n",  \
-																	ctx->restore[i+2][7][ctx->remap[i][7][stateR[5]]], \
-																	ctx->restore[i+2][6][ctx->remap[i][6][stateR[4]]], \
-																	ctx->restore[i+2][5][ctx->remap[i][5][stateR[3]]], \
-																	ctx->restore[i+2][4][ctx->remap[i][4][stateR[2]]], \
-																	ctx->restore[i+2][3][ctx->remap[i][3][temp[1]  ]],  \
-																	ctx->restore[i+2][2][ctx->remap[i][2][temp[0]  ]], \
-																	ctx->restore[i+2][1][ctx->remap[i][1][stateR[7]]], \
-																	ctx->restore[i+2][0][ctx->remap[i][0][stateR[6]]] );
+																	stateR[7], \
+																	stateR[6], \
+																	stateR[5], \
+																	stateR[4], \
+																	stateR[3], \
+																	stateR[2], \
+																	stateR[1], \
+																	stateR[0] );
 		#endif //LBLOCK_WB_DEBUG
 
-		stateR[0] = ctx->remap[i][0][stateR[6]] ^ ctx->Te[i][1][stateL[1]];
-		stateR[1] = ctx->remap[i][1][stateR[7]] ^ ctx->Te[i][3][stateL[3]];
-		stateR[6] = ctx->remap[i][6][stateR[4]] ^ ctx->Te[i][4][stateL[4]];
-		stateR[7] = ctx->remap[i][7][stateR[5]] ^ ctx->Te[i][6][stateL[6]];
-		stateR[4] = ctx->remap[i][4][stateR[2]] ^ ctx->Te[i][5][stateL[5]];
-		stateR[5] = ctx->remap[i][5][stateR[3]] ^ ctx->Te[i][7][stateL[7]];
-		stateR[2] = ctx->remap[i][2][temp[0]  ] ^ ctx->Te[i][0][stateL[0]];
-		stateR[3] = ctx->remap[i][3][temp[1]  ] ^ ctx->Te[i][2][stateL[2]];
+		uint32_t nr = 0;
+		for (j=0; j<8; j++) {
+			nr ^= ctx->remap[i][((j+2)%8)][stateR[j]];
+		}
+        printf("%ll08X\n", nr);
+
+        for (j=0; j<8; j++) {
+            nr ^= ctx->Te[i][j][stateL[j]];
+        }
+
+        printf("%ll08X\n", nr);
+
+		// stateR[0] = ctx->remap[i][0][stateR[6]] ^ ctx->Te[i][1][stateL[1]];
+		// stateR[1] = ctx->remap[i][1][stateR[7]] ^ ctx->Te[i][3][stateL[3]];
+		// stateR[6] = ctx->remap[i][6][stateR[4]] ^ ctx->Te[i][4][stateL[4]];
+		// stateR[7] = ctx->remap[i][7][stateR[5]] ^ ctx->Te[i][6][stateL[6]];
+		// stateR[4] = ctx->remap[i][4][stateR[2]] ^ ctx->Te[i][5][stateL[5]];
+		// stateR[5] = ctx->remap[i][5][stateR[3]] ^ ctx->Te[i][7][stateL[7]];
+		// stateR[2] = ctx->remap[i][2][temp[0]  ] ^ ctx->Te[i][0][stateL[0]];
+		// stateR[3] = ctx->remap[i][3][temp[1]  ] ^ ctx->Te[i][2][stateL[2]];
+
+		for (j=0; j<8; j++) {
+			stateR[j] = nr & 0x0f;
+			nr = nr >> 4;
+		} 
 
 		tempPiont = stateR;
 		stateR = stateL;
@@ -264,8 +323,8 @@ void LBlock80wb_encrypte_algorithm(const uint8_t *plain, const LBlock80wb_ctx *c
 
 		        
 #if LBLOCK_WB_DEBUG
-		for(j=7; j>=0; j--) printf("%x ", ctx->restore[i+2][j][stateL[j]]);
-        for(j=7; j>=0; j--) printf("%x ", ctx->restore[i+1][j][stateR[j]]);
+		for(j=7; j>=0; j--) printf("%x ", stateL[j]);
+        for(j=7; j>=0; j--) printf("%x ", stateR[j]);
         printf("\n");
 #endif //LBLOCK_WB_DEBUG
 
@@ -273,6 +332,12 @@ void LBlock80wb_encrypte_algorithm(const uint8_t *plain, const LBlock80wb_ctx *c
 	tempPiont = stateR;
 	stateR = stateL;
 	stateL = tempPiont;
+    
+	r64 = (uint64_t*)stateR;
+	printf("final\n");
+	for(i=0; i<8; i++) printf("%x ", stateR[i]);
+	printf("\n%llx \n", *r64);
+	printf("\n");
 
 	for (i=0; i<8; i++) {
 		stateR[i] = ctx->g[1][i][stateR[i]];

@@ -23,10 +23,10 @@
 
 typedef struct LBlock80wb_ctx {
 	int rounds ;
-	uint8_t Te[LBLOCK80_ROUNDS][8][16];
-	uint8_t remap[LBLOCK80_ROUNDS][8][16];
-	uint8_t fi[2][8][16];
-	uint8_t g[2][8][16];
+	uint32_t Te[LBLOCK80_ROUNDS][8][16];
+	uint32_t remap[LBLOCK80_ROUNDS][8][16];
+	uint32_t fi[2][8][16];
+	uint32_t g[2][8][16];
 	
 	#if LBLOCK_WB_DEBUG
 		uint8_t restore[LBLOCK80_ROUNDS+2][8][16];
