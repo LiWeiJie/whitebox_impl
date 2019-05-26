@@ -35,7 +35,8 @@ SET(LIB_SRCS ${LIB_SRCS} library/LBlock/LBlock80wb-new.cpp)
 SET(LIB_SRCS
     ${LIB_SRCS}
     library/present/present80.cpp
-    library/present/present80wb.cpp    
+    library/present/present80wb-new.cpp
+#    library/present/present80wb.cpp
 )
 # AUX_SOURCE_DIRECTORY(library/present LIB_SRCS)
 
